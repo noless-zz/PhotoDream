@@ -1,0 +1,32 @@
+<resources>
+    <string name="app_name">PhotoDream</string>
+    <string name="dream_label">PhotoDream slideshow</string>
+
+    <string name="section_photos">Photos</string>
+    <string name="choose_folder">Choose photo folder</string>
+    <string name="no_folder">No folder chosen yet</string>
+    <string name="counting">Counting photos…</string>
+    <string name="photo_count">%1$d photos found</string>
+    <string name="cloud_coming">OneDrive and Google Drive: coming next</string>
+
+    <string name="section_slideshow">Slideshow</string>
+    <string name="interval_label">Seconds per photo: %1$d</string>
+    <string name="transition_label">Transition</string>
+    <string name="transition_slide">Slide</string>
+    <string name="transition_fade">Fade</string>
+    <string name="transition_ken_burns">Ken Burns (slow zoom)</string>
+    <string name="shuffle">Shuffle</string>
+    <string name="crop">Fill screen (crop edges)</string>
+    <string name="show_clock">Show clock</string>
+    <string name="dim">Dim screen (good for bedside)</string>
+
+    <string name="section_run">Run it</string>
+    <string name="preview">Preview now</string>
+    <string name="open_system_settings">Open system screen saver settings</string>
+    <string name="system_hint">In system settings, pick \"PhotoDream slideshow\" and set \"When to start\" to \"While charging\". On Samsung you may need to turn off Always On Display.</string>
+
+    <string name="msg_no_photos">No photos yet.\nOpen PhotoDream and choose a folder.</string>
+    <string name="msg_paused">Paused</string>
+    <string name="msg_playing">Playing</string>
+    <string name="gesture_hint">Swipe = next/previous · Tap = pause · Long-press = exit</string>
+</resources>
