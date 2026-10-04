@@ -1,8 +1,11 @@
 package com.noam.photodream;
 
+import android.Manifest;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.PowerManager;
 import android.provider.DocumentsContract;
 import android.provider.Settings;
 import android.view.View;
@@ -26,6 +29,7 @@ import com.noam.photodream.onedrive.OneDriveConfig;
 import com.noam.photodream.onedrive.OneDriveFolderActivity;
 import com.noam.photodream.onedrive.OneDrivePrefs;
 import com.noam.photodream.onedrive.OneDriveScheduler;
+import com.noam.photodream.onedrive.OneDriveSyncWorker;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -127,9 +131,6 @@ public class SettingsActivity extends AppCompatActivity {
             }
         });
 
-        findViewById(R.id.btn_onedrive_folder).setOnClickListener(v ->
-                startActivity(new Intent(this, OneDriveFolderActivity.class)));
-
         setupSwitch(R.id.sw_onedrive_subfolders, od.isIncludeSubfolders(), b -> {
             od.setIncludeSubfolders(b);
         });
@@ -154,8 +155,24 @@ public class SettingsActivity extends AppCompatActivity {
         });
 
         findViewById(R.id.btn_onedrive_sync).setOnClickListener(v -> {
+            askNotificationPermission();
             OneDriveScheduler.syncNow(this);
             Toast.makeText(this, R.string.onedrive_sync_started, Toast.LENGTH_SHORT).show();
+        });
+        findViewById(R.id.btn_onedrive_folder).setOnClickListener(v -> {
+            askNotificationPermission();
+            startActivity(new Intent(this, OneDriveFolderActivity.class));
+        });
+
+        // Ask Android/Samsung not to restrict our background internet (battery optimisation)
+        findViewById(R.id.btn_onedrive_battery).setOnClickListener(v -> {
+            Intent i = new Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS,
+                    Uri.parse("package:" + getPackageName()));
+            try {
+                startActivity(i);
+            } catch (Exception e) {
+                startActivity(new Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS));
+            }
         });
 
         // live status of the "Sync now" job
@@ -163,9 +180,13 @@ public class SettingsActivity extends AppCompatActivity {
                 .observe(this, infos -> {
                     TextView last = findViewById(R.id.txt_onedrive_last_sync);
                     if (infos == null || infos.isEmpty()) return;
-                    WorkInfo.State state = infos.get(0).getState();
+                    WorkInfo info = infos.get(0);
+                    WorkInfo.State state = info.getState();
                     if (state == WorkInfo.State.RUNNING) {
-                        last.setText(R.string.onedrive_syncing);
+                        int done = info.getProgress().getInt(OneDriveSyncWorker.PROGRESS_DONE, 0);
+                        int total = info.getProgress().getInt(OneDriveSyncWorker.PROGRESS_TOTAL, 0);
+                        if (total > 0) last.setText(getString(R.string.onedrive_syncing_progress, done, total));
+                        else last.setText(R.string.onedrive_syncing);
                     } else if (state == WorkInfo.State.ENQUEUED) {
                         last.setText(R.string.onedrive_waiting);
                     } else if (state.isFinished()) {
@@ -173,6 +194,16 @@ public class SettingsActivity extends AppCompatActivity {
                         refreshFolderInfo();
                     }
                 });
+    }
+
+    private final ActivityResultLauncher<String> notificationPermission =
+            registerForActivityResult(new ActivityResultContracts.RequestPermission(), granted -> { });
+
+    /** The sync progress notification needs this on Android 13+ (sync works without it). */
+    private void askNotificationPermission() {
+        if (checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+            notificationPermission.launch(Manifest.permission.POST_NOTIFICATIONS);
+        }
     }
 
     private void refreshOneDrive() {
@@ -189,6 +220,11 @@ public class SettingsActivity extends AppCompatActivity {
         TextView folder = findViewById(R.id.txt_onedrive_folder);
         folder.setText(od.getFolderId() == null ? getString(R.string.onedrive_no_folder) : od.getFolderPath());
         findViewById(R.id.btn_onedrive_sync).setEnabled(od.getFolderId() != null);
+
+        boolean unrestricted = getSystemService(PowerManager.class)
+                .isIgnoringBatteryOptimizations(getPackageName());
+        findViewById(R.id.btn_onedrive_battery).setVisibility(unrestricted ? View.GONE : View.VISIBLE);
+        findViewById(R.id.txt_onedrive_battery_hint).setVisibility(unrestricted ? View.GONE : View.VISIBLE);
 
         TextView last = findViewById(R.id.txt_onedrive_last_sync);
         String msg = od.getLastSyncMessage();

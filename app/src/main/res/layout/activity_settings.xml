@@ -111,6 +111,20 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:alpha="0.7" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_onedrive_battery"
+                style="@style/Widget.Material3.Button.TextButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/onedrive_battery" />
+
+            <TextView
+                android:id="@+id/txt_onedrive_battery_hint"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:alpha="0.6"
+                android:text="@string/onedrive_battery_hint" />
         </LinearLayout>
 
         <!-- ===== Slideshow ===== -->

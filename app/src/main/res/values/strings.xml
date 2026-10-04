@@ -73,4 +73,12 @@
     <string name="onedrive_use_folder">Use this folder</string>
     <string name="onedrive_images_here">%1$d photos directly in this folder</string>
     <string name="onedrive_error">Could not load: %1$s</string>
+    <string name="onedrive_paused">%1$s – paused by Android, will continue</string>
+    <string name="onedrive_channel">OneDrive sync</string>
+    <string name="onedrive_notification_title">Syncing OneDrive photos</string>
+    <string name="onedrive_progress">%1$d of %2$d</string>
+    <string name="onedrive_listing">Looking for photos…</string>
+    <string name="onedrive_syncing_progress">Syncing… %1$d of %2$d photos</string>
+    <string name="onedrive_battery">Allow background sync</string>
+    <string name="onedrive_battery_hint">Samsung may cut PhotoDream\'s internet in the background. Tap above and choose Allow so the automatic sync while charging is not interrupted.</string>
 </resources>

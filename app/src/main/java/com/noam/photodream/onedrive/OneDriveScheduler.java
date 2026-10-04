@@ -3,6 +3,7 @@ package com.noam.photodream.onedrive;
 import android.content.Context;
 
 import androidx.work.Constraints;
+import androidx.work.Data;
 import androidx.work.ExistingPeriodicWorkPolicy;
 import androidx.work.ExistingWorkPolicy;
 import androidx.work.NetworkType;
@@ -22,8 +23,13 @@ public final class OneDriveScheduler {
 
     private OneDriveScheduler() { }
 
-    /** (Re)schedule the regular sync with the current settings. */
+    /** (Re)schedule the regular sync with the current settings; first run as soon as allowed. */
     public static void schedule(Context context) {
+        schedule(context, 0);
+    }
+
+    /** (Re)schedule the regular sync; the first run waits {@code delayHours}. */
+    public static void schedule(Context context, long delayHours) {
         OneDrivePrefs prefs = new OneDrivePrefs(context);
         if (!OneDriveAuth.isSignedIn(context) || prefs.getFolderId() == null) {
             WorkManager.getInstance(context).cancelUniqueWork(PERIODIC);
@@ -39,20 +45,28 @@ public final class OneDriveScheduler {
         PeriodicWorkRequest req = new PeriodicWorkRequest.Builder(
                 OneDriveSyncWorker.class, EVERY_HOURS, TimeUnit.HOURS)
                 .setConstraints(c)
+                .setInitialDelay(delayHours, TimeUnit.HOURS)
                 .build();
         WorkManager.getInstance(context)
                 .enqueueUniquePeriodicWork(PERIODIC, ExistingPeriodicWorkPolicy.UPDATE, req);
     }
 
-    /** "Sync now" button: runs as soon as there is any internet connection. */
+    /**
+     * "Sync now" button: runs as soon as there is any internet connection, as a
+     * foreground job with a notification. The regular sync is paused meanwhile
+     * (only one may run) and re-scheduled by the worker when it is done.
+     */
     public static void syncNow(Context context) {
+        WorkManager wm = WorkManager.getInstance(context);
+        wm.cancelUniqueWork(PERIODIC);
         Constraints c = new Constraints.Builder()
                 .setRequiredNetworkType(NetworkType.CONNECTED)
                 .build();
         OneTimeWorkRequest req = new OneTimeWorkRequest.Builder(OneDriveSyncWorker.class)
                 .setConstraints(c)
+                .setInputData(new Data.Builder().putBoolean(OneDriveSyncWorker.KEY_FOREGROUND, true).build())
                 .build();
-        WorkManager.getInstance(context).enqueueUniqueWork(NOW, ExistingWorkPolicy.KEEP, req);
+        wm.enqueueUniqueWork(NOW, ExistingWorkPolicy.KEEP, req);
     }
 
     /** Disconnect: stop jobs, forget tokens, folder and downloaded photos. */

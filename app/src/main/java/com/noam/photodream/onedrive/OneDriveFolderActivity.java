@@ -86,8 +86,7 @@ public class OneDriveFolderActivity extends AppCompatActivity {
         if (here == null) return;
         // the root has no item id in our list; Graph accepts the alias "root"
         new OneDrivePrefs(this).setFolder(here.id == null ? "root" : here.id, pathText());
-        OneDriveScheduler.schedule(this);
-        OneDriveScheduler.syncNow(this);
+        OneDriveScheduler.syncNow(this);   // also sets up the regular sync when done
         Toast.makeText(this, R.string.onedrive_sync_started, Toast.LENGTH_SHORT).show();
         finish();
     }

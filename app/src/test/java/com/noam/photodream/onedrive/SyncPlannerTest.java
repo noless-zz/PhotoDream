@@ -51,7 +51,8 @@ public class SyncPlannerTest {
     public void photosDeletedInOneDriveAreRemoved() {
         Set<String> cached = new HashSet<>(ids(0, 50));
         SyncPlanner.Plan p = SyncPlanner.plan(ids(10, 50), cached, 200, 0.2, new Random(4));
-        assertEquals(10, p.delete.size());
+        assertEquals(10, p.gone.size());
+        assertTrue(p.delete.isEmpty());
         assertEquals(40, p.keep.size());
         assertTrue(p.download.isEmpty());
     }
@@ -66,6 +67,16 @@ public class SyncPlannerTest {
     }
 
     @Test
+    public void partlyFilledCacheIsNotRotated() {
+        // an interrupted first sync left 30 photos: keep all, add 170 more
+        Set<String> cached = new HashSet<>(ids(0, 30));
+        SyncPlanner.Plan p = SyncPlanner.plan(ids(0, 1000), cached, 200, 0.2, new Random(7));
+        assertEquals(30, p.keep.size());
+        assertTrue(p.delete.isEmpty());
+        assertEquals(170, p.download.size());
+    }
+
+    @Test
     public void neverMoreThanTarget() {
         Random r = new Random(6);
         for (int round = 0; round < 200; round++) {
@@ -75,6 +86,7 @@ public class SyncPlannerTest {
             assertTrue(p.keep.size() + p.download.size() <= target);
             Set<String> all = new HashSet<>(p.keep);
             all.addAll(p.delete);
+            all.addAll(p.gone);
             assertEquals(cached, all);   // every cached file is either kept or deleted
         }
     }
