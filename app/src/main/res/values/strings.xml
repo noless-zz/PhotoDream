@@ -29,4 +29,21 @@
     <string name="msg_paused">Paused</string>
     <string name="msg_playing">Playing</string>
     <string name="gesture_hint">Swipe = next/previous · Tap = pause · Long-press = exit</string>
+
+    <string name="section_mode">Display mode</string>
+    <string name="mode_single">One photo at a time</string>
+    <string name="mode_table">Photo table (photos pile up)</string>
+
+    <string name="section_table">Photo table</string>
+    <string name="entry_label">How photos arrive</string>
+    <string name="entry_drop">Drop onto the table</string>
+    <string name="entry_fly_in">Fly in from the side</string>
+    <string name="entry_pop">Pop up</string>
+    <string name="entry_fade">Fade in</string>
+    <string name="entry_random">Random mix</string>
+    <string name="max_cards_label">Photos on table: %1$d</string>
+    <string name="card_size_label">Photo size: %1$d%%</string>
+    <string name="rotation_label">Max tilt: %1$d°</string>
+    <string name="drift">Slow floating movement</string>
+    <string name="table_gestures">Drag a photo to move it · flick it to throw it away · long-press the empty table (or Back) to exit</string>
 </resources>

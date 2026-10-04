@@ -37,15 +37,11 @@ import java.util.concurrent.Executors;
  * on top of the current one. Then they swap roles.
  *
  * Gestures: swipe left/right = next/previous, tap = pause/resume,
- * long-press = ask the owner to exit ({@link Listener#onExitRequested()}).
+ * long-press = ask the owner to exit ({@link PhotoDisplay.Listener#onExitRequested()}).
  */
-public class SlideshowView extends FrameLayout {
+public class SlideshowView extends FrameLayout implements PhotoDisplay {
 
     public enum Transition { SLIDE, FADE, KEN_BURNS }
-
-    public interface Listener {
-        void onExitRequested();
-    }
 
     private static final long SLIDE_MS = 700;
     private static final long FADE_MS = 1200;
@@ -71,7 +67,7 @@ public class SlideshowView extends FrameLayout {
     private long intervalMs = 10_000;
     private Transition transition = Transition.SLIDE;
     private boolean crop = true;
-    private Listener listener;
+    private PhotoDisplay.Listener listener;
 
     private final Runnable advance = () -> show(+1);
     private final Runnable hideMessage = this::fadeOutMessage;
@@ -119,10 +115,12 @@ public class SlideshowView extends FrameLayout {
 
     // ---------------------------------------------------------------- settings
 
+    @Override
     public void setIntervalSeconds(int seconds) { intervalMs = seconds * 1000L; }
     public void setTransition(Transition t) { transition = t; }
     public void setCrop(boolean crop) { this.crop = crop; applyScaleType(); }
-    public void setListener(Listener l) { listener = l; }
+    @Override
+    public void setListener(PhotoDisplay.Listener l) { listener = l; }
 
     private void applyScaleType() {
         ImageView.ScaleType type = crop ? ImageView.ScaleType.CENTER_CROP : ImageView.ScaleType.FIT_CENTER;
@@ -132,6 +130,7 @@ public class SlideshowView extends FrameLayout {
     // ---------------------------------------------------------------- control
 
     /** Start (or restart) with a new list of photos. Call on the main thread. */
+    @Override
     public void start(List<Uri> newPhotos) {
         photos = new ArrayList<>(newPhotos);
         index = -1;
@@ -146,6 +145,7 @@ public class SlideshowView extends FrameLayout {
     }
 
     /** Stop timers and animations. Safe to call more than once. */
+    @Override
     public void stop() {
         running = false;
         requestId++;
@@ -154,6 +154,7 @@ public class SlideshowView extends FrameLayout {
     }
 
     /** Stop for good – also shuts down the background thread. */
+    @Override
     public void release() {
         stop();
         loader.shutdownNow();

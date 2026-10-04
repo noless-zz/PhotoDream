@@ -10,6 +10,12 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 
+    <com.noam.photodream.PhotoTableView
+        android:id="@+id/photo_table"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:visibility="gone" />
+
     <LinearLayout
         android:id="@+id/clock_box"
         android:layout_width="wrap_content"
