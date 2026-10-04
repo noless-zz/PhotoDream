@@ -2,5 +2,6 @@
 <!-- Tells the system which screen opens when the user taps the gear next to
      our screensaver in Settings > Display > Screen saver. -->
 <dream xmlns:android="http://schemas.android.com/apk/res/android"
+    android:previewImage="@drawable/dream_preview"
     android:settingsActivity="com.noam.photodream/.SettingsActivity"
     android:showClockAndComplications="false" />

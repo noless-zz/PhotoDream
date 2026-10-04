@@ -14,8 +14,8 @@
 
     <application
         android:allowBackup="true"
-        android:icon="@drawable/ic_launcher"
-        android:roundIcon="@drawable/ic_launcher"
+        android:icon="@mipmap/ic_launcher"
+        android:roundIcon="@mipmap/ic_launcher_round"
         android:label="@string/app_name"
         android:supportsRtl="true"
         android:theme="@style/Theme.PhotoDream">
@@ -29,6 +29,11 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <!-- First-run introduction -->
+        <activity
+            android:name=".WelcomeActivity"
+            android:exported="false" />
 
         <!-- Full-screen preview of the slideshow, outside the screensaver -->
         <activity
@@ -64,7 +69,7 @@
         <service
             android:name=".PhotoDreamService"
             android:exported="true"
-            android:icon="@drawable/ic_launcher"
+            android:icon="@mipmap/ic_launcher"
             android:label="@string/dream_label"
             android:permission="android.permission.BIND_DREAM_SERVICE">
             <intent-filter>

@@ -288,5 +288,14 @@
             android:layout_marginTop="8dp"
             android:alpha="0.7"
             android:text="@string/system_hint" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_show_intro"
+            style="@style/Widget.Material3.Button.TextButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginTop="16dp"
+            android:text="@string/show_intro" />
     </LinearLayout>
 </ScrollView>

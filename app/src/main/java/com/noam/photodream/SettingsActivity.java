@@ -4,6 +4,7 @@ import android.Manifest;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.PowerManager;
 import android.provider.DocumentsContract;
@@ -51,6 +52,11 @@ public class SettingsActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_settings);
+        if (savedInstanceState == null && WelcomeActivity.shouldShow(this)) {
+            startActivity(new Intent(this, WelcomeActivity.class));
+        }
+        findViewById(R.id.btn_show_intro).setOnClickListener(v ->
+                startActivity(new Intent(this, WelcomeActivity.class)));
         prefs = new Prefs(this);
 
         txtFolder = findViewById(R.id.txt_folder);
@@ -163,7 +169,8 @@ public class SettingsActivity extends AppCompatActivity {
 
     /** The sync progress notification needs this on Android 13+ (sync works without it). */
     private void askNotificationPermission() {
-        if (checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+        if (Build.VERSION.SDK_INT >= 33
+                && checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
             notificationPermission.launch(Manifest.permission.POST_NOTIFICATIONS);
         }
     }

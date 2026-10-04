@@ -2,4 +2,5 @@
     <color name="accent">#FFE0A458</color>
     <color name="black">#FF000000</color>
     <color name="overlay_text">#E6FFFFFF</color>
+    <color name="icon_background">#FF1F2A44</color>
 </resources>

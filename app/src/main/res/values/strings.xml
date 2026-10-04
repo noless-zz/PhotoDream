@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">PhotoDream</string>
+    <string name="app_name" translatable="false">PhotoDream</string>
     <string name="dream_label">PhotoDream slideshow</string>
 
     <string name="section_photos">Photos</string>
@@ -83,13 +83,25 @@
     <string name="cloud_battery_hint">Samsung may cut PhotoDream\'s internet in the background. Tap above and choose Allow so the automatic sync while charging is not interrupted.</string>
 
     <!-- OneDrive -->
-    <string name="onedrive_name">OneDrive</string>
+    <string name="onedrive_name" translatable="false">OneDrive</string>
     <string name="onedrive_connecting">Connecting to OneDrive…</string>
     <string name="onedrive_connected_as">Connected as %1$s</string>
     <string name="onedrive_connect_failed">OneDrive sign-in failed: %1$s</string>
     <string name="onedrive_not_configured">The app needs a free Microsoft "client ID" before it can sign in.\n\nRegister the app in the Microsoft Entra portal (about 5 minutes), then paste the ID into res/values/onedrive_config.xml and rebuild.\n\nStep-by-step instructions: docs/ONEDRIVE_SETUP.md in the project.</string>
 
     <!-- Google Drive -->
-    <string name="gdrive_name">Google Drive</string>
+    <string name="gdrive_name" translatable="false">Google Drive</string>
     <string name="gdrive_developer_error">Google does not recognise this app. Check the Android client in Google Cloud (package name and SHA-1) – see docs/GOOGLE_DRIVE_SETUP.md.</string>
+
+    <!-- first-run screen -->
+    <string name="welcome_title">Welcome to PhotoDream</string>
+    <string name="welcome_intro">Your photos as a screen saver – whenever the phone is charging.</string>
+    <string name="welcome_step1_title">1 · Choose your photos</string>
+    <string name="welcome_step1_text">A folder on this phone, OneDrive or Google Drive – or all of them. Cloud photos are downloaded in the background, a random selection that keeps changing.</string>
+    <string name="welcome_step2_title">2 · Turn on the screen saver</string>
+    <string name="welcome_step2_text">In the system screen saver settings choose \"PhotoDream slideshow\" and set it to start while charging. On Samsung: Settings › Display › Screen saver. If nothing appears, turn off Always On Display.</string>
+    <string name="welcome_step3_title">3 · Charge and enjoy</string>
+    <string name="welcome_step3_text">Put the phone on the charger and let the screen time out. Swipe to change photos, drag them on the photo table, long-press to leave – the lock screen stays protected.</string>
+    <string name="welcome_start">Let\'s start</string>
+    <string name="show_intro">Show introduction</string>
 </resources>

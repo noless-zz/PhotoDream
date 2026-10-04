@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Themed-icon version (Android 13+): single colour, the system tints it. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp" android:height="108dp"
+    android:viewportWidth="108" android:viewportHeight="108">
+    <group android:scaleX="1.2" android:scaleY="1.2" android:pivotX="54" android:pivotY="56">
+    <group android:rotation="-12" android:pivotX="54" android:pivotY="54">
+        <path android:fillColor="#FF000000" android:fillAlpha="0.5"
+            android:pathData="M33,36h38a2,2 0 0 1 2,2v28a2,2 0 0 1 -2,2h-38a2,2 0 0 1 -2,-2v-28a2,2 0 0 1 2,-2z" />
+    </group>
+    <group android:rotation="6" android:pivotX="54" android:pivotY="58">
+        <path android:fillColor="#FF000000"
+            android:pathData="M34,40h40a2,2 0 0 1 2,2v32a2,2 0 0 1 -2,2h-40a2,2 0 0 1 -2,-2v-32a2,2 0 0 1 2,-2zM36,42v24h36v-24z" />
+        <path android:fillColor="#FF000000" android:pathData="M36,66l10,-11l7,7l6,-6l13,10z" />
+        <path android:fillColor="#FF000000" android:pathData="M64,47a4,4 0 1 0 0.01,0z" />
+    </group>
+    </group>
+</vector>

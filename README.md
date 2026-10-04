@@ -1,6 +1,6 @@
 # PhotoDream
 
-A photo slideshow **screensaver** for Android (Java). It runs only while the
+A photo slideshow **screensaver** for Android 10+ (Java). It runs only while the
 phone is charging, because Android starts screensavers ("Dreams") by itself
 when the phone is charging and idle.
 
@@ -36,6 +36,10 @@ Gestures (photo table): drag a photo · flick it away · long-press the empty ta
 | `gdrive/GoogleDriveProvider` | Google sign-in (Play services AuthorizationClient), Drive v3 API |
 | `onedrive/SecureStore` | OneDrive tokens encrypted with an Android Keystore key |
 
+## Docs
+- `docs/STUDENT_INSTALL.md` – install & use guide for students (Hebrew)
+- `docs/ONEDRIVE_SETUP.md`, `docs/GOOGLE_DRIVE_SETUP.md` – one-time cloud registration
+
 ## Signing
 Builds are signed with the release key in `../PhotoDream-signing/` (outside git;
 see the README there). Without that folder, Gradle falls back to the debug key –
@@ -47,4 +51,7 @@ then Google sign-in fails, because Google knows only the release key's SHA-1.
 - [x] Sync job (WorkManager, only when charging + Wi-Fi) → `photo_cache/onedrive/`
 - [x] OneDrive source (OAuth PKCE + Microsoft Graph, `Files.Read`) – setup: `docs/ONEDRIVE_SETUP.md`
 - [x] Google Drive source (Drive API, `drive.readonly`) – setup: `docs/GOOGLE_DRIVE_SETUP.md`
+- [x] First-run screen, Hebrew, adaptive/themed icon, screen saver preview, Android 10+
 - [ ] Optional: live wallpaper using the same `SlideshowView` logic
+- [ ] Google Play (only if going public): privacy policy, user-initiated transfer job instead of the
+      foreground service, remove the battery-exemption button, Drive verification + CASA

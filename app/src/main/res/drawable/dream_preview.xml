@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Preview shown in the system "Screen saver" picker: photos on a dark table + clock. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="112dp" android:height="200dp"
+    android:viewportWidth="270" android:viewportHeight="480">
+    <path android:fillColor="#FF101318" android:pathData="M0,0h270v480h-270z" />
+    <group android:rotation="-9" android:pivotX="95" android:pivotY="130">
+        <path android:fillColor="#FFF7F1E8" android:pathData="M30,80h130v100h-130z" />
+        <path android:fillColor="#FF5B7A99" android:pathData="M38,88h114v84h-114z" />
+        <path android:fillColor="#FF3E7C6B" android:pathData="M38,172l35,-38l25,24l20,-18l34,32z" />
+    </group>
+    <group android:rotation="7" android:pivotX="170" android:pivotY="250">
+        <path android:fillColor="#FFF7F1E8" android:pathData="M110,190h120v130h-120z" />
+        <path android:fillColor="#FFB5835A" android:pathData="M118,198h104v114h-104z" />
+        <path android:fillColor="#FFE0A458" android:pathData="M196,222a12,12 0 1 0 0.01,0z" />
+    </group>
+    <group android:rotation="-4" android:pivotX="90" android:pivotY="330">
+        <path android:fillColor="#FFF7F1E8" android:pathData="M30,280h120v90h-120z" />
+        <path android:fillColor="#FF2E3F5C" android:pathData="M38,288h104v74h-104z" />
+    </group>
+    <!-- clock -->
+    <path android:fillColor="#E6FFFFFF" android:pathData="M24,420h70v8h-70zM24,436h120v4h-120z" />
+</vector>

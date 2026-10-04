@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Hebrew. "iw" is Android's resource code for Hebrew (works on all versions). -->
+<resources>
+    <string name="dream_label">מצגת PhotoDream</string>
+
+    <string name="section_photos">תמונות</string>
+    <string name="choose_folder">בחירת תיקיית תמונות</string>
+    <string name="no_folder">עדיין לא נבחרה תיקייה</string>
+    <string name="counting">סופר תמונות…</string>
+    <string name="photo_count">נמצאו %1$d תמונות</string>
+
+    <string name="section_slideshow">מצגת</string>
+    <string name="interval_label">שניות לכל תמונה: %1$d</string>
+    <string name="transition_label">מעבר</string>
+    <string name="transition_slide">החלקה</string>
+    <string name="transition_fade">עמעום</string>
+    <string name="transition_ken_burns">קן ברנס (זום איטי)</string>
+    <string name="shuffle">סדר אקראי</string>
+    <string name="crop">מילוי המסך (חיתוך שוליים)</string>
+    <string name="show_clock">הצגת שעון</string>
+    <string name="dim">עמעום המסך (מתאים ליד המיטה)</string>
+
+    <string name="section_run">הפעלה</string>
+    <string name="preview">תצוגה מקדימה</string>
+    <string name="open_system_settings">פתיחת הגדרות שומר המסך</string>
+    <string name="system_hint">בהגדרות המערכת יש לבחור ב״מצגת PhotoDream״ ולקבוע ״מתי להתחיל״ ל״בזמן טעינה״. בסמסונג ייתכן שיהיה צורך לכבות את Always On Display.</string>
+
+    <string name="msg_no_photos">עדיין אין תמונות.\nיש לפתוח את PhotoDream ולבחור תיקייה.</string>
+    <string name="msg_paused">מושהה</string>
+    <string name="msg_playing">מתנגן</string>
+    <string name="gesture_hint">החלקה = הבאה/הקודמת · הקשה = השהיה · לחיצה ארוכה = יציאה</string>
+
+    <string name="section_mode">מצב תצוגה</string>
+    <string name="mode_single">תמונה אחת בכל פעם</string>
+    <string name="mode_table">שולחן תמונות (התמונות נערמות)</string>
+
+    <string name="section_table">שולחן תמונות</string>
+    <string name="entry_label">איך התמונות מגיעות</string>
+    <string name="entry_drop">נוחתות על השולחן</string>
+    <string name="entry_fly_in">עפות פנימה מהצד</string>
+    <string name="entry_pop">קופצות</string>
+    <string name="entry_fade">מופיעות בעמעום</string>
+    <string name="entry_random">שילוב אקראי</string>
+    <string name="max_cards_label">תמונות על השולחן: %1$d</string>
+    <string name="card_size_label">גודל תמונה: %1$d%%</string>
+    <string name="rotation_label">הטיה מרבית: %1$d°</string>
+    <string name="drift">תנועה איטית מרחפת</string>
+    <string name="table_gestures">גרירת תמונה מזיזה אותה · הטלה מהירה זורקת אותה · לחיצה ארוכה על שולחן ריק (או ״חזרה״) ליציאה</string>
+
+    <!-- ענן -->
+    <string name="cloud_not_connected">לא מחובר</string>
+    <string name="cloud_connected_as">מחובר בתור %1$s</string>
+    <string name="cloud_connect">חיבור %1$s</string>
+    <string name="cloud_disconnect">ניתוק</string>
+    <string name="cloud_disconnect_confirm">לנתק את %1$s ולמחוק מהטלפון את התמונות שהורדו ממנו?</string>
+    <string name="cloud_connect_failed">ההתחברות ל־%1$s נכשלה: %2$s</string>
+    <string name="cloud_cancelled">ההתחברות בוטלה</string>
+    <string name="cloud_sign_in_again">פג תוקף ההתחברות – יש להתחבר מחדש</string>
+    <string name="cloud_not_configured_title">צריך קודם שלב הגדרה אחד</string>
+    <string name="cloud_choose_folder">בחירת תיקייה</string>
+    <string name="cloud_no_folder">לא נבחרה תיקייה</string>
+    <string name="cloud_subfolders">כולל תיקיות משנה</string>
+    <string name="cloud_max_photos">תמונות לשמירה בטלפון: %1$d</string>
+    <string name="cloud_wifi_charging">סנכרון רק ב־Wi-Fi ובזמן טעינה</string>
+    <string name="cloud_sync_now">סנכרון עכשיו</string>
+    <string name="cloud_sync_started">מסנכרן ברקע…</string>
+    <string name="cloud_syncing">מסנכרן…</string>
+    <string name="cloud_syncing_progress">מסנכרן… %1$d מתוך %2$d תמונות</string>
+    <string name="cloud_waiting">ממתין לאינטרנט…</string>
+    <string name="cloud_last_sync">סנכרון אחרון: %1$s</string>
+    <string name="cloud_never_synced">עדיין לא סונכרן</string>
+    <string name="cloud_paused">%1$s – אנדרואיד השהה את הסנכרון, הוא ימשיך בהמשך</string>
+    <string name="cloud_pick_title">בחירת תיקייה ב־%1$s</string>
+    <string name="cloud_root">הקבצים שלי</string>
+    <string name="cloud_up">למעלה</string>
+    <string name="cloud_use_folder">שימוש בתיקייה הזו</string>
+    <string name="cloud_images_here">%1$d תמונות ישירות בתיקייה הזו</string>
+    <string name="cloud_error">הטעינה נכשלה: %1$s</string>
+    <string name="cloud_channel">סנכרון תמונות</string>
+    <string name="cloud_notification_title">מסנכרן תמונות מ־%1$s</string>
+    <string name="cloud_progress">%1$d מתוך %2$d</string>
+    <string name="cloud_listing">מחפש תמונות…</string>
+    <string name="cloud_battery">אישור סנכרון ברקע</string>
+    <string name="cloud_battery_hint">סמסונג עלולה לחסום את האינטרנט של PhotoDream ברקע. יש להקיש למעלה ולבחור ״אישור״, כדי שהסנכרון האוטומטי בזמן טעינה לא ייקטע.</string>
+
+    <!-- OneDrive -->
+    <string name="onedrive_connecting">מתחבר ל־OneDrive…</string>
+    <string name="onedrive_connected_as">מחובר בתור %1$s</string>
+    <string name="onedrive_connect_failed">ההתחברות ל־OneDrive נכשלה: %1$s</string>
+    <string name="onedrive_not_configured">לפני ההתחברות האפליקציה צריכה ״מזהה לקוח״ (client ID) חינמי של מיקרוסופט.\n\nיש לרשום את האפליקציה בפורטל Microsoft Entra (כחמש דקות), להדביק את המזהה בקובץ res/values/onedrive_config.xml ולבנות מחדש.\n\nהוראות מפורטות: docs/ONEDRIVE_SETUP.md בפרויקט.</string>
+
+    <!-- Google Drive -->
+    <string name="gdrive_developer_error">גוגל לא מזהה את האפליקציה. יש לבדוק את לקוח ה־Android ב־Google Cloud (שם החבילה ו־SHA-1) – ראו docs/GOOGLE_DRIVE_SETUP.md.</string>
+
+    <!-- מסך פתיחה -->
+    <string name="welcome_title">ברוכים הבאים ל־PhotoDream</string>
+    <string name="welcome_intro">התמונות שלך כשומר מסך – בכל פעם שהטלפון בטעינה.</string>
+    <string name="welcome_step1_title">1 · בוחרים תמונות</string>
+    <string name="welcome_step1_text">תיקייה בטלפון, OneDrive או Google Drive – או כולם יחד. תמונות מהענן יורדות ברקע, מבחר אקראי שמתחלף כל הזמן.</string>
+    <string name="welcome_step2_title">2 · מפעילים את שומר המסך</string>
+    <string name="welcome_step2_text">בהגדרות שומר המסך של המערכת בוחרים ב״מצגת PhotoDream״ וקובעים שיתחיל בזמן טעינה. בסמסונג: הגדרות › תצוגה › שומר מסך. אם לא מופיע כלום, כדאי לכבות את Always On Display.</string>
+    <string name="welcome_step3_title">3 · מטעינים ונהנים</string>
+    <string name="welcome_step3_text">מניחים את הטלפון בטעינה ונותנים למסך לכבות. החלקה מחליפה תמונה, בשולחן התמונות אפשר לגרור אותן, ולחיצה ארוכה יוצאת – מסך הנעילה נשאר מוגן.</string>
+    <string name="welcome_start">מתחילים</string>
+    <string name="show_intro">הצגת ההסבר</string>
+</resources>
