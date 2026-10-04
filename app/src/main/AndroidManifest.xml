@@ -1,6 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
+    <!-- OneDrive sync -->
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+
     <application
         android:allowBackup="true"
         android:icon="@drawable/ic_launcher"
@@ -24,6 +28,24 @@
             android:name=".PreviewActivity"
             android:exported="false"
             android:theme="@style/Theme.PhotoDream.Fullscreen" />
+
+        <!-- OneDrive: folder browser -->
+        <activity
+            android:name=".onedrive.OneDriveFolderActivity"
+            android:exported="false" />
+
+        <!-- OneDrive: the browser returns here after Microsoft sign-in (photodream://auth) -->
+        <activity
+            android:name=".onedrive.OneDriveRedirectActivity"
+            android:exported="true"
+            android:launchMode="singleTask">
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="photodream" android:host="auth" />
+            </intent-filter>
+        </activity>
 
         <!-- The screensaver ("Dream"). Android starts it by itself while charging. -->
         <service

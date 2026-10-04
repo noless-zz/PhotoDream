@@ -7,7 +7,6 @@
     <string name="no_folder">No folder chosen yet</string>
     <string name="counting">Counting photos…</string>
     <string name="photo_count">%1$d photos found</string>
-    <string name="cloud_coming">OneDrive and Google Drive: coming next</string>
 
     <string name="section_slideshow">Slideshow</string>
     <string name="interval_label">Seconds per photo: %1$d</string>
@@ -46,4 +45,32 @@
     <string name="rotation_label">Max tilt: %1$d°</string>
     <string name="drift">Slow floating movement</string>
     <string name="table_gestures">Drag a photo to move it · flick it to throw it away · long-press the empty table (or Back) to exit</string>
+
+    <string name="section_onedrive">OneDrive</string>
+    <string name="onedrive_not_connected">Not connected</string>
+    <string name="onedrive_connected_as">Connected as %1$s</string>
+    <string name="onedrive_connect">Connect OneDrive</string>
+    <string name="onedrive_disconnect">Disconnect</string>
+    <string name="onedrive_disconnect_confirm">Disconnect OneDrive and delete the downloaded OneDrive photos from this phone?</string>
+    <string name="onedrive_connecting">Connecting to OneDrive…</string>
+    <string name="onedrive_connect_failed">OneDrive sign-in failed: %1$s</string>
+    <string name="onedrive_not_configured_title">One setup step first</string>
+    <string name="onedrive_not_configured">The app needs a free Microsoft "client ID" before it can sign in.\n\nRegister the app in the Microsoft Entra portal (about 5 minutes), then paste the ID into res/values/onedrive_config.xml and rebuild.\n\nStep-by-step instructions: docs/ONEDRIVE_SETUP.md in the project.</string>
+    <string name="onedrive_choose_folder">Choose OneDrive folder</string>
+    <string name="onedrive_no_folder">No OneDrive folder chosen</string>
+    <string name="onedrive_subfolders">Include subfolders</string>
+    <string name="onedrive_max_photos">Photos to keep on phone: %1$d</string>
+    <string name="onedrive_wifi_charging">Sync only on Wi-Fi while charging</string>
+    <string name="onedrive_sync_now">Sync now</string>
+    <string name="onedrive_sync_started">Syncing in the background…</string>
+    <string name="onedrive_syncing">Syncing…</string>
+    <string name="onedrive_waiting">Waiting for internet…</string>
+    <string name="onedrive_last_sync">Last sync: %1$s</string>
+    <string name="onedrive_never_synced">Not synced yet</string>
+    <string name="onedrive_pick_title">Choose a OneDrive folder</string>
+    <string name="onedrive_root">My files</string>
+    <string name="onedrive_up">Up</string>
+    <string name="onedrive_use_folder">Use this folder</string>
+    <string name="onedrive_images_here">%1$d photos directly in this folder</string>
+    <string name="onedrive_error">Could not load: %1$s</string>
 </resources>

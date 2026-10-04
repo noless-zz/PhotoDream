@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Paste the "Application (client) ID" from the Microsoft Entra portal here.
+         Step-by-step: docs/ONEDRIVE_SETUP.md
+         It is not a secret (the app uses PKCE), so it is fine to commit. -->
+    <string name="onedrive_client_id" translatable="false">PASTE-YOUR-CLIENT-ID-HERE</string>
+</resources>

@@ -28,11 +28,17 @@ Gestures (photo table): drag a photo · flick it away · long-press the empty ta
 | `source/LocalFolderSource` | Folder picked with the system picker (SAF) |
 | `source/CacheFolderSource` | `files/photo_cache/` – where cloud sync will download to |
 | `SettingsActivity` / `Prefs` | Settings screen and SharedPreferences |
+| `onedrive/OneDriveAuth` | Microsoft sign-in (OAuth code + PKCE), token refresh |
+| `onedrive/SecureStore` | Tokens encrypted with an Android Keystore key |
+| `onedrive/GraphClient` | Microsoft Graph calls: list folders/images, download |
+| `onedrive/OneDriveFolderActivity` | Folder browser |
+| `onedrive/OneDriveSyncWorker` + `SyncPlanner` | WorkManager job: download, shrink, rotate, clean up |
+| `onedrive/OneDriveScheduler` | Every 6 h (Wi-Fi + charging by default), Sync now, Disconnect |
 
 ## Roadmap
 - [x] Screensaver + preview, slide / fade / Ken Burns, local folder
 - [x] Photo table mode (drop / fly in / pop / fade / random, drag & flick, slow drift)
-- [ ] Sync job (WorkManager, only when charging + Wi-Fi) → `photo_cache/`
-- [ ] OneDrive source (MSAL + Microsoft Graph, `Files.Read`)
+- [x] Sync job (WorkManager, only when charging + Wi-Fi) → `photo_cache/onedrive/`
+- [x] OneDrive source (OAuth PKCE + Microsoft Graph, `Files.Read`) – setup: `docs/ONEDRIVE_SETUP.md`
 - [ ] Google Drive source (Drive API, `drive.readonly`)
 - [ ] Optional: live wallpaper using the same `SlideshowView` logic

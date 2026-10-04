@@ -16,7 +16,16 @@ import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
 
+import androidx.work.WorkInfo;
+import androidx.work.WorkManager;
+
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.materialswitch.MaterialSwitch;
+import com.noam.photodream.onedrive.OneDriveAuth;
+import com.noam.photodream.onedrive.OneDriveConfig;
+import com.noam.photodream.onedrive.OneDriveFolderActivity;
+import com.noam.photodream.onedrive.OneDrivePrefs;
+import com.noam.photodream.onedrive.OneDriveScheduler;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -52,6 +61,7 @@ public class SettingsActivity extends AppCompatActivity {
         Button choose = findViewById(R.id.btn_choose_folder);
         choose.setOnClickListener(v -> pickFolder.launch(prefs.getLocalFolder()));
 
+        setupOneDrive();
         setupMode();
         setupInterval();
         setupTransition();
@@ -85,6 +95,105 @@ public class SettingsActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
         refreshFolderInfo();
+        refreshOneDrive();
+    }
+
+    // ---------------------------------------------------------------- OneDrive
+
+    private static final int ONEDRIVE_STEP = 50;
+
+    private void setupOneDrive() {
+        OneDrivePrefs od = new OneDrivePrefs(this);
+
+        findViewById(R.id.btn_onedrive_connect).setOnClickListener(v -> {
+            if (OneDriveAuth.isSignedIn(this)) {
+                new MaterialAlertDialogBuilder(this)
+                        .setMessage(R.string.onedrive_disconnect_confirm)
+                        .setPositiveButton(R.string.onedrive_disconnect, (d, w) -> {
+                            OneDriveScheduler.disconnect(this);
+                            refreshOneDrive();
+                            refreshFolderInfo();
+                        })
+                        .setNegativeButton(android.R.string.cancel, null)
+                        .show();
+            } else if (!OneDriveConfig.isConfigured(this)) {
+                new MaterialAlertDialogBuilder(this)
+                        .setTitle(R.string.onedrive_not_configured_title)
+                        .setMessage(R.string.onedrive_not_configured)
+                        .setPositiveButton(android.R.string.ok, null)
+                        .show();
+            } else {
+                OneDriveAuth.startSignIn(this);
+            }
+        });
+
+        findViewById(R.id.btn_onedrive_folder).setOnClickListener(v ->
+                startActivity(new Intent(this, OneDriveFolderActivity.class)));
+
+        setupSwitch(R.id.sw_onedrive_subfolders, od.isIncludeSubfolders(), b -> {
+            od.setIncludeSubfolders(b);
+        });
+        setupSwitch(R.id.sw_onedrive_wifi, od.isWifiChargingOnly(), b -> {
+            od.setWifiChargingOnly(b);
+            OneDriveScheduler.schedule(this);
+        });
+        // 50..1000 in steps of 50
+        TextView maxLabel = findViewById(R.id.txt_onedrive_max);
+        maxLabel.setText(getString(R.string.onedrive_max_photos, od.getMaxPhotos()));
+        SeekBar maxSeek = findViewById(R.id.seek_onedrive_max);
+        maxSeek.setMax(19);
+        maxSeek.setProgress(Math.max(0, Math.min(19, od.getMaxPhotos() / ONEDRIVE_STEP - 1)));
+        maxSeek.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override public void onProgressChanged(SeekBar s, int progress, boolean fromUser) {
+                int n = (progress + 1) * ONEDRIVE_STEP;
+                maxLabel.setText(getString(R.string.onedrive_max_photos, n));
+                od.setMaxPhotos(n);
+            }
+            @Override public void onStartTrackingTouch(SeekBar s) { }
+            @Override public void onStopTrackingTouch(SeekBar s) { }
+        });
+
+        findViewById(R.id.btn_onedrive_sync).setOnClickListener(v -> {
+            OneDriveScheduler.syncNow(this);
+            Toast.makeText(this, R.string.onedrive_sync_started, Toast.LENGTH_SHORT).show();
+        });
+
+        // live status of the "Sync now" job
+        WorkManager.getInstance(this).getWorkInfosForUniqueWorkLiveData(OneDriveScheduler.NOW)
+                .observe(this, infos -> {
+                    TextView last = findViewById(R.id.txt_onedrive_last_sync);
+                    if (infos == null || infos.isEmpty()) return;
+                    WorkInfo.State state = infos.get(0).getState();
+                    if (state == WorkInfo.State.RUNNING) {
+                        last.setText(R.string.onedrive_syncing);
+                    } else if (state == WorkInfo.State.ENQUEUED) {
+                        last.setText(R.string.onedrive_waiting);
+                    } else if (state.isFinished()) {
+                        refreshOneDrive();
+                        refreshFolderInfo();
+                    }
+                });
+    }
+
+    private void refreshOneDrive() {
+        boolean signedIn = OneDriveAuth.isSignedIn(this);
+        OneDrivePrefs od = new OneDrivePrefs(this);
+        TextView status = findViewById(R.id.txt_onedrive_status);
+        Button connect = findViewById(R.id.btn_onedrive_connect);
+        status.setText(signedIn
+                ? getString(R.string.onedrive_connected_as, OneDriveAuth.accountName(this))
+                : getString(R.string.onedrive_not_connected));
+        connect.setText(signedIn ? R.string.onedrive_disconnect : R.string.onedrive_connect);
+        findViewById(R.id.group_onedrive).setVisibility(signedIn ? View.VISIBLE : View.GONE);
+
+        TextView folder = findViewById(R.id.txt_onedrive_folder);
+        folder.setText(od.getFolderId() == null ? getString(R.string.onedrive_no_folder) : od.getFolderPath());
+        findViewById(R.id.btn_onedrive_sync).setEnabled(od.getFolderId() != null);
+
+        TextView last = findViewById(R.id.txt_onedrive_last_sync);
+        String msg = od.getLastSyncMessage();
+        last.setText(msg.isEmpty() ? getString(R.string.onedrive_never_synced)
+                : getString(R.string.onedrive_last_sync, msg));
     }
 
     @Override
