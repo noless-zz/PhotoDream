@@ -7,9 +7,9 @@
     android:padding="16dp">
 
     <TextView
+        android:id="@+id/txt_title"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="@string/onedrive_pick_title"
         android:textAppearance="?attr/textAppearanceTitleLarge" />
 
     <TextView
@@ -51,13 +51,13 @@
             android:layout_height="wrap_content"
             android:layout_marginEnd="8dp"
             android:layout_weight="1"
-            android:text="@string/onedrive_up" />
+            android:text="@string/cloud_up" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btn_use"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="2"
-            android:text="@string/onedrive_use_folder" />
+            android:text="@string/cloud_use_folder" />
     </LinearLayout>
 </LinearLayout>

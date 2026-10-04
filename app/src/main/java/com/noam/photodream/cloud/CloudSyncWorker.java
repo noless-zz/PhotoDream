@@ -1,4 +1,4 @@
-package com.noam.photodream.onedrive;
+package com.noam.photodream.cloud;
 
 import android.app.Notification;
 import android.app.NotificationChannel;
@@ -37,9 +37,10 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
 
 /**
- * Background job (WorkManager) that copies photos from the chosen OneDrive
- * folder into files/photo_cache/onedrive/, where {@link CacheFolderSource}
- * picks them up for the screensaver.
+ * Background job (WorkManager) that copies photos from the chosen cloud
+ * folder (OneDrive, Google Drive, …) into files/photo_cache/&lt;provider&gt;/,
+ * where {@link CacheFolderSource} picks them up for the screensaver.
+ * Input data says which provider.
  *
  * Photos are shrunk to screen size and saved as JPEG, so 200 photos take
  * roughly 100 MB instead of ~1 GB of originals.
@@ -47,46 +48,61 @@ import java.util.concurrent.locks.ReentrantLock;
  * If Android stops the job (time limit, charger unplugged), nothing is lost:
  * finished downloads stay, and the next run continues.
  */
-public class OneDriveSyncWorker extends Worker {
+public class CloudSyncWorker extends Worker {
 
-    private static final String TAG = "OneDriveSync";
+    private static final String TAG = "CloudSync";
     private static final int MAX_LISTED = 20_000;
     private static final int SUBFOLDER_DEPTH = 3;
     private static final double ROTATE_FRACTION = 0.2;
     private static final int JPEG_QUALITY = 88;
 
+    /** Input: id of the {@link CloudProvider} to sync. */
+    public static final String KEY_PROVIDER = "provider";
     /** Input flag: run with a foreground notification ("Sync now"). */
     public static final String KEY_FOREGROUND = "foreground";
     /** Progress keys, read by the settings screen. */
     public static final String PROGRESS_DONE = "done";
     public static final String PROGRESS_TOTAL = "total";
 
-    private static final String CHANNEL = "onedrive_sync";
-    private static final int NOTIFICATION_ID = 4711;
-    private static final ReentrantLock RUNNING = new ReentrantLock();
+    private static final String CHANNEL = "cloud_sync";
+    private static final Map<String, ReentrantLock> LOCKS = new HashMap<>();
 
-    public OneDriveSyncWorker(@NonNull Context context, @NonNull WorkerParameters params) {
+    private static synchronized ReentrantLock lockFor(String providerId) {
+        ReentrantLock l = LOCKS.get(providerId);
+        if (l == null) {
+            l = new ReentrantLock();
+            LOCKS.put(providerId, l);
+        }
+        return l;
+    }
+
+    public CloudSyncWorker(@NonNull Context context, @NonNull WorkerParameters params) {
         super(context, params);
     }
 
-    public static File cacheDir(Context context) {
-        return new File(CacheFolderSource.cacheRoot(context), "onedrive");
+    public static File cacheDir(Context context, CloudProvider provider) {
+        return new File(CacheFolderSource.cacheRoot(context), provider.id());
     }
 
     @NonNull
     @Override
     public Result doWork() {
         Context ctx = getApplicationContext();
-        OneDrivePrefs prefs = new OneDrivePrefs(ctx);
-        if (!OneDriveConfig.isConfigured(ctx) || !OneDriveAuth.isSignedIn(ctx)
-                || prefs.getFolderId() == null) {
+        CloudProvider provider;
+        try {
+            provider = CloudProviders.get(getInputData().getString(KEY_PROVIDER));
+        } catch (IllegalArgumentException | NullPointerException e) {
+            return Result.failure();
+        }
+        CloudPrefs prefs = new CloudPrefs(ctx, provider);
+        if (!provider.isConfigured(ctx) || !provider.isSignedIn(ctx) || prefs.getFolderId() == null) {
             return Result.success();   // nothing to do
         }
-        // "Sync now" and the regular sync must never run at the same time
+        final ReentrantLock running = lockFor(provider.id());
         boolean syncNow = getInputData().getBoolean(KEY_FOREGROUND, false);
         try {
             // "Sync now" waits a moment for a cancelled regular sync to wind down
-            if (!(syncNow ? RUNNING.tryLock(90, TimeUnit.SECONDS) : RUNNING.tryLock())) {
+            if (!(syncNow ? running.tryLock(90, TimeUnit.SECONDS) : running.tryLock())) {
                 return Result.success();
             }
         } catch (InterruptedException e) {
@@ -94,18 +110,18 @@ public class OneDriveSyncWorker extends Worker {
         }
         Result result;
         try {
-            if (syncNow) goForeground(0, 0);
-            String summary = sync(ctx, prefs);
+            if (syncNow) goForeground(provider, 0, 0);
+            String summary = sync(ctx, provider, prefs);
             prefs.setLastSync(System.currentTimeMillis(), summary);
             result = isStopped() ? Result.retry() : Result.success();
-        } catch (OneDriveAuth.NotSignedInException e) {
+        } catch (NotSignedInException e) {
             prefs.setLastSync(System.currentTimeMillis(), e.getMessage());
             result = Result.failure();   // retrying won't help until the user signs in
         } catch (IOException e) {
             if (isStopped()) {
                 // Android paused us (left the app, Wi-Fi lost, charger unplugged): not an error
                 prefs.setLastSync(System.currentTimeMillis(),
-                        ctx.getString(R.string.onedrive_paused, timeNow()));
+                        ctx.getString(R.string.cloud_paused, timeNow()));
                 result = Result.retry();
             } else {
                 Log.w(TAG, "Sync failed", e);
@@ -113,27 +129,27 @@ public class OneDriveSyncWorker extends Worker {
                 result = getRunAttemptCount() < 3 ? Result.retry() : Result.failure();
             }
         } finally {
-            RUNNING.unlock();
+            running.unlock();
         }
         // "Sync now" paused the regular schedule – bring it back once we are done for good
-        if (syncNow && !result.equals(Result.retry())) OneDriveScheduler.schedule(ctx, 6);
+        if (syncNow && !result.equals(Result.retry())) CloudScheduler.schedule(ctx, provider, 6);
         return result;
     }
 
-    private String sync(Context ctx, OneDrivePrefs prefs) throws IOException {
-        GraphClient graph = new GraphClient(ctx);
+    private String sync(Context ctx, CloudProvider provider, CloudPrefs prefs) throws IOException {
         int depth = prefs.isIncludeSubfolders() ? SUBFOLDER_DEPTH : 0;
-        List<GraphClient.DriveItem> remote = graph.listImages(prefs.getFolderId(), depth, MAX_LISTED);
+        List<CloudItem> remote = new ArrayList<>();
+        collectImages(ctx, provider, prefs.getFolderId(), depth, remote);
 
-        File dir = cacheDir(ctx);
+        File dir = cacheDir(ctx, provider);
         if (!dir.isDirectory() && !dir.mkdirs()) throw new IOException("Cannot create " + dir);
 
-        // what we already have: file name <-> OneDrive id
+        // what we already have: file name <-> cloud id
         Map<String, String> fileForId = new HashMap<>();
         List<String> remoteIds = new ArrayList<>();
-        for (GraphClient.DriveItem item : remote) {
+        for (CloudItem item : remote) {
             remoteIds.add(item.id);
-            fileForId.put(item.id, fileName(item.id));
+            fileForId.put(item.id, fileName(provider, item.id));
         }
         Set<String> cachedIds = new HashSet<>();
         List<File> orphanFiles = new ArrayList<>();
@@ -144,14 +160,14 @@ public class OneDriveSyncWorker extends Worker {
             for (File f : existing) {
                 String id = idForFile.get(f.getName());
                 if (id != null) cachedIds.add(id);
-                else orphanFiles.add(f);     // deleted in OneDrive, or a leftover temp file
+                else orphanFiles.add(f);     // deleted in the cloud, or a leftover temp file
             }
         }
 
         SyncPlanner.Plan plan = SyncPlanner.plan(remoteIds, cachedIds, prefs.getMaxPhotos(),
                 ROTATE_FRACTION, new Random());
 
-        // photos deleted from OneDrive go right away
+        // photos deleted from the cloud go right away
         for (File f : orphanFiles) delete(f);
 
         int added = 0, failed = 0;
@@ -159,13 +175,13 @@ public class OneDriveSyncWorker extends Worker {
         int targetLongSide = screenLongSide(ctx);
         for (String id : plan.download) {
             if (isStopped()) break;
-            reportProgress(added + failed, total);
+            reportProgress(provider, added + failed, total);
             File tmp = new File(dir, fileForId.get(id) + ".part");
             try {
-                graph.download(id, tmp);
+                provider.download(ctx, id, tmp);
                 if (shrink(tmp, new File(dir, fileForId.get(id)), targetLongSide)) added++;
                 else failed++;
-            } catch (OneDriveAuth.NotSignedInException e) {
+            } catch (NotSignedInException e) {
                 throw e;
             } catch (IOException e) {
                 if (isStopped()) break;
@@ -197,9 +213,19 @@ public class OneDriveSyncWorker extends Worker {
 
     // ---------------------------------------------------------------- progress / foreground
 
-    private void reportProgress(int done, int total) {
+    /** Walk the folder (and sub-folders up to {@code depthLeft}) collecting images. */
+    private void collectImages(Context ctx, CloudProvider provider, String folderId, int depthLeft,
+                               List<CloudItem> out) throws IOException {
+        for (CloudItem item : provider.listChildren(ctx, folderId)) {
+            if (out.size() >= MAX_LISTED || isStopped()) return;
+            if (item.image) out.add(item);
+            else if (item.folder && depthLeft > 0) collectImages(ctx, provider, item.id, depthLeft - 1, out);
+        }
+    }
+
+    private void reportProgress(CloudProvider provider, int done, int total) {
         setProgressAsync(new Data.Builder().putInt(PROGRESS_DONE, done).putInt(PROGRESS_TOTAL, total).build());
-        if (getInputData().getBoolean(KEY_FOREGROUND, false)) goForeground(done, total);
+        if (getInputData().getBoolean(KEY_FOREGROUND, false)) goForeground(provider, done, total);
     }
 
     /**
@@ -207,30 +233,31 @@ public class OneDriveSyncWorker extends Worker {
      * keeps its internet access when the user leaves the app. Only allowed
      * when started from the app (the "Sync now" button), so failures are ignored.
      */
-    private void goForeground(int done, int total) {
+    private void goForeground(CloudProvider provider, int done, int total) {
         try {
-            setForegroundAsync(foregroundInfo(getApplicationContext(), done, total)).get();
+            setForegroundAsync(foregroundInfo(getApplicationContext(), provider, done, total)).get();
         } catch (Exception e) {
             Log.i(TAG, "Running without foreground notification: " + e);
         }
     }
 
-    private static ForegroundInfo foregroundInfo(Context ctx, int done, int total) {
+    private static ForegroundInfo foregroundInfo(Context ctx, CloudProvider provider, int done, int total) {
         NotificationManager nm = ctx.getSystemService(NotificationManager.class);
         if (nm.getNotificationChannel(CHANNEL) == null) {
             nm.createNotificationChannel(new NotificationChannel(CHANNEL,
-                    ctx.getString(R.string.onedrive_channel), NotificationManager.IMPORTANCE_LOW));
+                    ctx.getString(R.string.cloud_channel), NotificationManager.IMPORTANCE_LOW));
         }
         Notification n = new Notification.Builder(ctx, CHANNEL)
                 .setSmallIcon(android.R.drawable.stat_sys_download)
-                .setContentTitle(ctx.getString(R.string.onedrive_notification_title))
-                .setContentText(total > 0 ? ctx.getString(R.string.onedrive_progress, done, total)
-                        : ctx.getString(R.string.onedrive_listing))
+                .setContentTitle(ctx.getString(R.string.cloud_notification_title, provider.displayName(ctx)))
+                .setContentText(total > 0 ? ctx.getString(R.string.cloud_progress, done, total)
+                        : ctx.getString(R.string.cloud_listing))
                 .setProgress(total, done, total == 0)
                 .setOngoing(true)
                 .setOnlyAlertOnce(true)
                 .build();
-        return new ForegroundInfo(NOTIFICATION_ID, n, ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC);
+        int notificationId = 4700 + Math.abs(provider.id().hashCode() % 100);
+        return new ForegroundInfo(notificationId, n, ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC);
     }
 
     private static int countPhotos(File dir) {
@@ -269,9 +296,9 @@ public class OneDriveSyncWorker extends Worker {
         }
     }
 
-    /** OneDrive ids can contain characters like '!' – make a safe, stable file name. */
-    static String fileName(String id) {
-        return "od_" + id.replaceAll("[^A-Za-z0-9._-]", "_") + ".jpg";
+    /** Cloud ids can contain characters like '!' – make a safe, stable file name. */
+    static String fileName(CloudProvider provider, String id) {
+        return provider.filePrefix() + id.replaceAll("[^A-Za-z0-9._-]", "_") + ".jpg";
     }
 
     private static int screenLongSide(Context ctx) {

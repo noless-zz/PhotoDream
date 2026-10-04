@@ -1,4 +1,4 @@
-package com.noam.photodream.onedrive;
+package com.noam.photodream.cloud;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;

@@ -1,12 +1,12 @@
-package com.noam.photodream.onedrive;
+package com.noam.photodream.cloud;
 
 import android.content.Context;
 import android.content.SharedPreferences;
 
-/** OneDrive settings (not secret – tokens live in {@link SecureStore}). */
-public class OneDrivePrefs {
+/** Settings of one cloud source (folder, limits, last sync). One prefs file per provider. */
+public class CloudPrefs {
 
-    private static final String FILE = "onedrive";
+
     private static final String KEY_FOLDER_ID = "folder_id";
     private static final String KEY_FOLDER_PATH = "folder_path";
     private static final String KEY_SUBFOLDERS = "subfolders";
@@ -17,8 +17,12 @@ public class OneDrivePrefs {
 
     private final SharedPreferences sp;
 
-    public OneDrivePrefs(Context context) {
-        sp = context.getApplicationContext().getSharedPreferences(FILE, Context.MODE_PRIVATE);
+    public CloudPrefs(Context context, CloudProvider provider) {
+        this(context, provider.id());
+    }
+
+    public CloudPrefs(Context context, String providerId) {
+        sp = context.getApplicationContext().getSharedPreferences(providerId, Context.MODE_PRIVATE);
     }
 
     /** OneDrive item id of the chosen folder; null = none chosen. */

@@ -1,4 +1,4 @@
-package com.noam.photodream.onedrive;
+package com.noam.photodream.cloud;
 
 import java.util.ArrayList;
 import java.util.Collections;

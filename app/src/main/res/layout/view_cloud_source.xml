@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- One cloud source in the settings screen (used for OneDrive and Google Drive).
+     Inflated by CloudSourceView with <merge>, so it lives inside a vertical LinearLayout. -->
+<merge xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <TextView
+        android:id="@+id/cs_title"
+        style="@style/SectionTitle" />
+
+    <TextView
+        android:id="@+id/cs_status"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/cs_connect"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+
+    <!-- shown only while connected -->
+    <LinearLayout
+        android:id="@+id/cs_group"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/cs_folder_btn"
+            style="@style/Widget.Material3.Button.OutlinedButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/cloud_choose_folder" />
+
+        <TextView
+            android:id="@+id/cs_folder"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+
+        <com.google.android.material.materialswitch.MaterialSwitch
+            android:id="@+id/cs_subfolders"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/cloud_subfolders" />
+
+        <TextView
+            android:id="@+id/cs_max_label"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp" />
+
+        <SeekBar
+            android:id="@+id/cs_max"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:max="19" />
+
+        <com.google.android.material.materialswitch.MaterialSwitch
+            android:id="@+id/cs_wifi"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/cloud_wifi_charging" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/cs_sync"
+            style="@style/Widget.Material3.Button.TonalButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/cloud_sync_now" />
+
+        <TextView
+            android:id="@+id/cs_last_sync"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:alpha="0.7" />
+    </LinearLayout>
+</merge>

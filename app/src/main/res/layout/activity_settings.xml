@@ -39,95 +39,31 @@
             android:layout_height="wrap_content"
             android:textStyle="bold" />
 
-        <!-- ===== OneDrive ===== -->
-        <TextView
-            style="@style/SectionTitle"
-            android:text="@string/section_onedrive" />
-
-        <TextView
-            android:id="@+id/txt_onedrive_status"
+        <!-- ===== Cloud sources (same controls for each cloud) ===== -->
+        <com.noam.photodream.cloud.CloudSourceView
+            android:id="@+id/source_onedrive"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/onedrive_not_connected" />
+            android:layout_height="wrap_content" />
+
+        <com.noam.photodream.cloud.CloudSourceView
+            android:id="@+id/source_gdrive"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
 
         <com.google.android.material.button.MaterialButton
-            android:id="@+id/btn_onedrive_connect"
+            android:id="@+id/btn_battery"
+            style="@style/Widget.Material3.Button.TextButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/cloud_battery" />
+
+        <TextView
+            android:id="@+id/txt_battery_hint"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/onedrive_connect" />
+            android:alpha="0.6"
+            android:text="@string/cloud_battery_hint" />
 
-        <!-- shown only while connected -->
-        <LinearLayout
-            android:id="@+id/group_onedrive"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical">
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btn_onedrive_folder"
-                style="@style/Widget.Material3.Button.OutlinedButton"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="@string/onedrive_choose_folder" />
-
-            <TextView
-                android:id="@+id/txt_onedrive_folder"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="@string/onedrive_no_folder" />
-
-            <com.google.android.material.materialswitch.MaterialSwitch
-                android:id="@+id/sw_onedrive_subfolders"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="@string/onedrive_subfolders" />
-
-            <TextView
-                android:id="@+id/txt_onedrive_max"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp" />
-
-            <SeekBar
-                android:id="@+id/seek_onedrive_max"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content" />
-
-            <com.google.android.material.materialswitch.MaterialSwitch
-                android:id="@+id/sw_onedrive_wifi"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="@string/onedrive_wifi_charging" />
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btn_onedrive_sync"
-                style="@style/Widget.Material3.Button.TonalButton"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="@string/onedrive_sync_now" />
-
-            <TextView
-                android:id="@+id/txt_onedrive_last_sync"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:alpha="0.7" />
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btn_onedrive_battery"
-                style="@style/Widget.Material3.Button.TextButton"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/onedrive_battery" />
-
-            <TextView
-                android:id="@+id/txt_onedrive_battery_hint"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:alpha="0.6"
-                android:text="@string/onedrive_battery_hint" />
-        </LinearLayout>
-
-        <!-- ===== Slideshow ===== -->
         <!-- ===== Display mode ===== -->
         <TextView
             style="@style/SectionTitle"

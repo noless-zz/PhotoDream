@@ -16,20 +16,15 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.IntentSenderRequest;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
 
-import androidx.work.WorkInfo;
-import androidx.work.WorkManager;
 
-import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.materialswitch.MaterialSwitch;
-import com.noam.photodream.onedrive.OneDriveAuth;
-import com.noam.photodream.onedrive.OneDriveConfig;
-import com.noam.photodream.onedrive.OneDriveFolderActivity;
-import com.noam.photodream.onedrive.OneDrivePrefs;
-import com.noam.photodream.onedrive.OneDriveScheduler;
-import com.noam.photodream.onedrive.OneDriveSyncWorker;
+import com.noam.photodream.cloud.CloudProvider;
+import com.noam.photodream.cloud.CloudProviders;
+import com.noam.photodream.cloud.CloudSourceView;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -65,7 +60,7 @@ public class SettingsActivity extends AppCompatActivity {
         Button choose = findViewById(R.id.btn_choose_folder);
         choose.setOnClickListener(v -> pickFolder.launch(prefs.getLocalFolder()));
 
-        setupOneDrive();
+        setupClouds();
         setupMode();
         setupInterval();
         setupTransition();
@@ -99,73 +94,39 @@ public class SettingsActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
         refreshFolderInfo();
-        refreshOneDrive();
+        refreshClouds();
     }
 
-    // ---------------------------------------------------------------- OneDrive
+    // ---------------------------------------------------------------- clouds
 
-    private static final int ONEDRIVE_STEP = 50;
+    private CloudSourceView oneDriveView, googleDriveView;
+    private CloudProvider pendingConnect;   // waiting for Google's sign-in screen
 
-    private void setupOneDrive() {
-        OneDrivePrefs od = new OneDrivePrefs(this);
+    /** Google Play services screens (account picker, consent) return here. */
+    private final ActivityResultLauncher<IntentSenderRequest> cloudResolution =
+            registerForActivityResult(new ActivityResultContracts.StartIntentSenderForResult(), r -> {
+                if (pendingConnect == null) return;
+                CloudProvider p = pendingConnect;
+                pendingConnect = null;
+                p.onResolutionResult(this, r.getResultCode(), r.getData(), err -> onConnected(p, err));
+            });
 
-        findViewById(R.id.btn_onedrive_connect).setOnClickListener(v -> {
-            if (OneDriveAuth.isSignedIn(this)) {
-                new MaterialAlertDialogBuilder(this)
-                        .setMessage(R.string.onedrive_disconnect_confirm)
-                        .setPositiveButton(R.string.onedrive_disconnect, (d, w) -> {
-                            OneDriveScheduler.disconnect(this);
-                            refreshOneDrive();
-                            refreshFolderInfo();
-                        })
-                        .setNegativeButton(android.R.string.cancel, null)
-                        .show();
-            } else if (!OneDriveConfig.isConfigured(this)) {
-                new MaterialAlertDialogBuilder(this)
-                        .setTitle(R.string.onedrive_not_configured_title)
-                        .setMessage(R.string.onedrive_not_configured)
-                        .setPositiveButton(android.R.string.ok, null)
-                        .show();
-            } else {
-                OneDriveAuth.startSignIn(this);
+    private void setupClouds() {
+        CloudSourceView.Host host = new CloudSourceView.Host() {
+            @Override public void connect(CloudProvider p) {
+                pendingConnect = p;
+                p.connect(SettingsActivity.this, cloudResolution, err -> onConnected(p, err));
             }
-        });
-
-        setupSwitch(R.id.sw_onedrive_subfolders, od.isIncludeSubfolders(), b -> {
-            od.setIncludeSubfolders(b);
-        });
-        setupSwitch(R.id.sw_onedrive_wifi, od.isWifiChargingOnly(), b -> {
-            od.setWifiChargingOnly(b);
-            OneDriveScheduler.schedule(this);
-        });
-        // 50..1000 in steps of 50
-        TextView maxLabel = findViewById(R.id.txt_onedrive_max);
-        maxLabel.setText(getString(R.string.onedrive_max_photos, od.getMaxPhotos()));
-        SeekBar maxSeek = findViewById(R.id.seek_onedrive_max);
-        maxSeek.setMax(19);
-        maxSeek.setProgress(Math.max(0, Math.min(19, od.getMaxPhotos() / ONEDRIVE_STEP - 1)));
-        maxSeek.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
-            @Override public void onProgressChanged(SeekBar s, int progress, boolean fromUser) {
-                int n = (progress + 1) * ONEDRIVE_STEP;
-                maxLabel.setText(getString(R.string.onedrive_max_photos, n));
-                od.setMaxPhotos(n);
-            }
-            @Override public void onStartTrackingTouch(SeekBar s) { }
-            @Override public void onStopTrackingTouch(SeekBar s) { }
-        });
-
-        findViewById(R.id.btn_onedrive_sync).setOnClickListener(v -> {
-            askNotificationPermission();
-            OneDriveScheduler.syncNow(this);
-            Toast.makeText(this, R.string.onedrive_sync_started, Toast.LENGTH_SHORT).show();
-        });
-        findViewById(R.id.btn_onedrive_folder).setOnClickListener(v -> {
-            askNotificationPermission();
-            startActivity(new Intent(this, OneDriveFolderActivity.class));
-        });
+            @Override public void onSyncRequested() { askNotificationPermission(); }
+            @Override public void onPhotosChanged() { refreshFolderInfo(); }
+        };
+        oneDriveView = findViewById(R.id.source_onedrive);
+        oneDriveView.bind(this, CloudProviders.ONEDRIVE, host);
+        googleDriveView = findViewById(R.id.source_gdrive);
+        googleDriveView.bind(this, CloudProviders.GOOGLE_DRIVE, host);
 
         // Ask Android/Samsung not to restrict our background internet (battery optimisation)
-        findViewById(R.id.btn_onedrive_battery).setOnClickListener(v -> {
+        findViewById(R.id.btn_battery).setOnClickListener(v -> {
             Intent i = new Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS,
                     Uri.parse("package:" + getPackageName()));
             try {
@@ -174,26 +135,27 @@ public class SettingsActivity extends AppCompatActivity {
                 startActivity(new Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS));
             }
         });
+    }
 
-        // live status of the "Sync now" job
-        WorkManager.getInstance(this).getWorkInfosForUniqueWorkLiveData(OneDriveScheduler.NOW)
-                .observe(this, infos -> {
-                    TextView last = findViewById(R.id.txt_onedrive_last_sync);
-                    if (infos == null || infos.isEmpty()) return;
-                    WorkInfo info = infos.get(0);
-                    WorkInfo.State state = info.getState();
-                    if (state == WorkInfo.State.RUNNING) {
-                        int done = info.getProgress().getInt(OneDriveSyncWorker.PROGRESS_DONE, 0);
-                        int total = info.getProgress().getInt(OneDriveSyncWorker.PROGRESS_TOTAL, 0);
-                        if (total > 0) last.setText(getString(R.string.onedrive_syncing_progress, done, total));
-                        else last.setText(R.string.onedrive_syncing);
-                    } else if (state == WorkInfo.State.ENQUEUED) {
-                        last.setText(R.string.onedrive_waiting);
-                    } else if (state.isFinished()) {
-                        refreshOneDrive();
-                        refreshFolderInfo();
-                    }
-                });
+    private void onConnected(CloudProvider p, String error) {
+        pendingConnect = null;
+        String msg = error == null
+                ? getString(R.string.cloud_connected_as, p.accountName(this))
+                : getString(R.string.cloud_connect_failed, p.displayName(this), error);
+        Toast.makeText(this, msg, Toast.LENGTH_LONG).show();
+        refreshClouds();
+    }
+
+    private void refreshClouds() {
+        oneDriveView.refresh();
+        googleDriveView.refresh();
+        boolean anyConnected = false;
+        for (CloudProvider p : CloudProviders.all()) anyConnected |= p.isSignedIn(this);
+        boolean unrestricted = getSystemService(PowerManager.class)
+                .isIgnoringBatteryOptimizations(getPackageName());
+        int vis = anyConnected && !unrestricted ? View.VISIBLE : View.GONE;
+        findViewById(R.id.btn_battery).setVisibility(vis);
+        findViewById(R.id.txt_battery_hint).setVisibility(vis);
     }
 
     private final ActivityResultLauncher<String> notificationPermission =
@@ -204,32 +166,6 @@ public class SettingsActivity extends AppCompatActivity {
         if (checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
             notificationPermission.launch(Manifest.permission.POST_NOTIFICATIONS);
         }
-    }
-
-    private void refreshOneDrive() {
-        boolean signedIn = OneDriveAuth.isSignedIn(this);
-        OneDrivePrefs od = new OneDrivePrefs(this);
-        TextView status = findViewById(R.id.txt_onedrive_status);
-        Button connect = findViewById(R.id.btn_onedrive_connect);
-        status.setText(signedIn
-                ? getString(R.string.onedrive_connected_as, OneDriveAuth.accountName(this))
-                : getString(R.string.onedrive_not_connected));
-        connect.setText(signedIn ? R.string.onedrive_disconnect : R.string.onedrive_connect);
-        findViewById(R.id.group_onedrive).setVisibility(signedIn ? View.VISIBLE : View.GONE);
-
-        TextView folder = findViewById(R.id.txt_onedrive_folder);
-        folder.setText(od.getFolderId() == null ? getString(R.string.onedrive_no_folder) : od.getFolderPath());
-        findViewById(R.id.btn_onedrive_sync).setEnabled(od.getFolderId() != null);
-
-        boolean unrestricted = getSystemService(PowerManager.class)
-                .isIgnoringBatteryOptimizations(getPackageName());
-        findViewById(R.id.btn_onedrive_battery).setVisibility(unrestricted ? View.GONE : View.VISIBLE);
-        findViewById(R.id.txt_onedrive_battery_hint).setVisibility(unrestricted ? View.GONE : View.VISIBLE);
-
-        TextView last = findViewById(R.id.txt_onedrive_last_sync);
-        String msg = od.getLastSyncMessage();
-        last.setText(msg.isEmpty() ? getString(R.string.onedrive_never_synced)
-                : getString(R.string.onedrive_last_sync, msg));
     }
 
     @Override

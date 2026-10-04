@@ -28,17 +28,23 @@ Gestures (photo table): drag a photo · flick it away · long-press the empty ta
 | `source/LocalFolderSource` | Folder picked with the system picker (SAF) |
 | `source/CacheFolderSource` | `files/photo_cache/` – where cloud sync will download to |
 | `SettingsActivity` / `Prefs` | Settings screen and SharedPreferences |
-| `onedrive/OneDriveAuth` | Microsoft sign-in (OAuth code + PKCE), token refresh |
-| `onedrive/SecureStore` | Tokens encrypted with an Android Keystore key |
-| `onedrive/GraphClient` | Microsoft Graph calls: list folders/images, download |
-| `onedrive/OneDriveFolderActivity` | Folder browser |
-| `onedrive/OneDriveSyncWorker` + `SyncPlanner` | WorkManager job: download, shrink, rotate, clean up |
-| `onedrive/OneDriveScheduler` | Every 6 h (Wi-Fi + charging by default), Sync now, Disconnect |
+| `cloud/CloudProvider` | Interface every cloud implements; `CloudProviders` lists them |
+| `cloud/CloudSyncWorker` + `SyncPlanner` | Shared WorkManager sync: download, shrink, rotate, clean up |
+| `cloud/CloudScheduler` | Every 6 h (Wi-Fi + charging by default), Sync now, Disconnect |
+| `cloud/CloudFolderActivity`, `CloudSourceView` | Shared folder browser and settings section |
+| `onedrive/OneDriveProvider`, `OneDriveAuth` | Microsoft sign-in (OAuth code + PKCE), Graph API |
+| `gdrive/GoogleDriveProvider` | Google sign-in (Play services AuthorizationClient), Drive v3 API |
+| `onedrive/SecureStore` | OneDrive tokens encrypted with an Android Keystore key |
+
+## Signing
+Builds are signed with the release key in `../PhotoDream-signing/` (outside git;
+see the README there). Without that folder, Gradle falls back to the debug key –
+then Google sign-in fails, because Google knows only the release key's SHA-1.
 
 ## Roadmap
 - [x] Screensaver + preview, slide / fade / Ken Burns, local folder
 - [x] Photo table mode (drop / fly in / pop / fade / random, drag & flick, slow drift)
 - [x] Sync job (WorkManager, only when charging + Wi-Fi) → `photo_cache/onedrive/`
 - [x] OneDrive source (OAuth PKCE + Microsoft Graph, `Files.Read`) – setup: `docs/ONEDRIVE_SETUP.md`
-- [ ] Google Drive source (Drive API, `drive.readonly`)
+- [x] Google Drive source (Drive API, `drive.readonly`) – setup: `docs/GOOGLE_DRIVE_SETUP.md`
 - [ ] Optional: live wallpaper using the same `SlideshowView` logic

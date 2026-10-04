@@ -7,6 +7,8 @@ import android.content.SharedPreferences;
 import android.net.Uri;
 import android.util.Base64;
 
+import com.noam.photodream.cloud.Http;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -33,7 +35,7 @@ import java.util.Map;
 public final class OneDriveAuth {
 
     /** The user must sign in (again). */
-    public static class NotSignedInException extends IOException {
+    public static class NotSignedInException extends com.noam.photodream.cloud.NotSignedInException {
         NotSignedInException(String msg) { super(msg); }
     }
 

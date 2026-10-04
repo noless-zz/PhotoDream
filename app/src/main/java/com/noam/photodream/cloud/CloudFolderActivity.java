@@ -1,5 +1,7 @@
-package com.noam.photodream.onedrive;
+package com.noam.photodream.cloud;
 
+import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.ArrayAdapter;
@@ -20,8 +22,11 @@ import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-/** Simple OneDrive folder browser: tap a folder to open it, "Use this folder" to choose it. */
-public class OneDriveFolderActivity extends AppCompatActivity {
+/**
+ * Simple cloud folder browser: tap a folder to open it, "Use this folder" to choose it.
+ * Start with {@link #intent(Context, CloudProvider)}.
+ */
+public class CloudFolderActivity extends AppCompatActivity {
 
     /** One level of the path we walked down. id == null is the root. */
     private static final class Level {
@@ -29,10 +34,16 @@ public class OneDriveFolderActivity extends AppCompatActivity {
         Level(String id, String name) { this.id = id; this.name = name; }
     }
 
+    private static final String EXTRA_PROVIDER = "provider";
+
+    public static Intent intent(Context context, CloudProvider provider) {
+        return new Intent(context, CloudFolderActivity.class).putExtra(EXTRA_PROVIDER, provider.id());
+    }
+
     private final Deque<Level> path = new ArrayDeque<>();
-    private final List<GraphClient.DriveItem> folders = new ArrayList<>();
+    private final List<CloudItem> folders = new ArrayList<>();
     private final ExecutorService io = Executors.newSingleThreadExecutor();
-    private GraphClient graph;
+    private CloudProvider provider;
     private ArrayAdapter<String> adapter;
     private TextView txtPath, txtImagesHere;
     private View progress;
@@ -41,8 +52,11 @@ public class OneDriveFolderActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_onedrive_folders);
-        graph = new GraphClient(this);
+        setContentView(R.layout.activity_cloud_folders);
+        provider = CloudProviders.get(getIntent().getStringExtra(EXTRA_PROVIDER));
+        setTitle(provider.displayName(this));
+        TextView title = findViewById(R.id.txt_title);
+        title.setText(getString(R.string.cloud_pick_title, provider.displayName(this)));
 
         txtPath = findViewById(R.id.txt_path);
         txtImagesHere = findViewById(R.id.txt_images_here);
@@ -51,7 +65,7 @@ public class OneDriveFolderActivity extends AppCompatActivity {
         adapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, new ArrayList<>());
         list.setAdapter(adapter);
         list.setOnItemClickListener((parent, view, position, id) -> {
-            GraphClient.DriveItem f = folders.get(position);
+            CloudItem f = folders.get(position);
             path.push(new Level(f.id, f.name));
             load();
         });
@@ -64,7 +78,7 @@ public class OneDriveFolderActivity extends AppCompatActivity {
             }
         });
 
-        path.push(new Level(null, getString(R.string.onedrive_root)));
+        path.push(new Level(provider.rootId(), getString(R.string.cloud_root)));
         load();
     }
 
@@ -84,10 +98,9 @@ public class OneDriveFolderActivity extends AppCompatActivity {
     private void useCurrent() {
         Level here = path.peek();
         if (here == null) return;
-        // the root has no item id in our list; Graph accepts the alias "root"
-        new OneDrivePrefs(this).setFolder(here.id == null ? "root" : here.id, pathText());
-        OneDriveScheduler.syncNow(this);   // also sets up the regular sync when done
-        Toast.makeText(this, R.string.onedrive_sync_started, Toast.LENGTH_SHORT).show();
+        new CloudPrefs(this, provider).setFolder(here.id, pathText());
+        CloudScheduler.syncNow(this, provider);   // also sets up the regular sync when done
+        Toast.makeText(this, R.string.cloud_sync_started, Toast.LENGTH_SHORT).show();
         finish();
     }
 
@@ -114,10 +127,10 @@ public class OneDriveFolderActivity extends AppCompatActivity {
 
         io.execute(() -> {
             try {
-                List<GraphClient.DriveItem> items = graph.listChildren(here.id);
-                List<GraphClient.DriveItem> dirs = new ArrayList<>();
+                List<CloudItem> items = provider.listChildren(this, here.id);
+                List<CloudItem> dirs = new ArrayList<>();
                 int images = 0;
-                for (GraphClient.DriveItem it : items) {
+                for (CloudItem it : items) {
                     if (it.folder) dirs.add(it);
                     else if (it.image) images++;
                 }
@@ -127,16 +140,16 @@ public class OneDriveFolderActivity extends AppCompatActivity {
                     if (id != loadId) return;
                     progress.setVisibility(View.GONE);
                     folders.addAll(dirs);
-                    for (GraphClient.DriveItem d : dirs) {
-                        adapter.add("📁  " + d.name + "   (" + d.childCount + ")");
+                    for (CloudItem d : dirs) {
+                        adapter.add("📁  " + d.name + (d.childCount >= 0 ? "   (" + d.childCount + ")" : ""));
                     }
-                    txtImagesHere.setText(getString(R.string.onedrive_images_here, imageCount));
+                    txtImagesHere.setText(getString(R.string.cloud_images_here, imageCount));
                 });
             } catch (IOException e) {
                 runOnUiThread(() -> {
                     if (id != loadId) return;
                     progress.setVisibility(View.GONE);
-                    txtImagesHere.setText(getString(R.string.onedrive_error, e.getMessage()));
+                    txtImagesHere.setText(getString(R.string.cloud_error, e.getMessage()));
                 });
             }
         });

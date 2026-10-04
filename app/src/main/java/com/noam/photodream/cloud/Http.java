@@ -1,4 +1,4 @@
-package com.noam.photodream.onedrive;
+package com.noam.photodream.cloud;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -16,11 +16,11 @@ import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
 /** Tiny HTTP helper on top of HttpURLConnection (no extra libraries). Blocking – background threads only. */
-final class Http {
+public final class Http {
 
     /** Thrown for non-2xx answers; {@link #code} 401 means the token is no longer valid. */
-    static final class HttpException extends IOException {
-        final int code;
+    public static final class HttpException extends IOException {
+        public final int code;
 
         HttpException(int code, String body) {
             super("HTTP " + code + ": " + shorten(body));
@@ -36,7 +36,7 @@ final class Http {
 
     private Http() { }
 
-    static JSONObject postForm(String url, Map<String, String> form) throws IOException {
+    public static JSONObject postForm(String url, Map<String, String> form) throws IOException {
         StringBuilder body = new StringBuilder();
         for (Map.Entry<String, String> e : form.entrySet()) {
             if (body.length() > 0) body.append('&');
@@ -53,7 +53,7 @@ final class Http {
         return readJson(c);
     }
 
-    static JSONObject getJson(String url, String accessToken) throws IOException {
+    public static JSONObject getJson(String url, String accessToken) throws IOException {
         HttpURLConnection c = open(url, accessToken);
         c.setRequestProperty("Accept", "application/json");
         return readJson(c);
@@ -64,7 +64,7 @@ final class Http {
      * pre-authenticated download link; we follow it ourselves WITHOUT sending
      * our token to that other host.
      */
-    static void download(String url, String accessToken, File target) throws IOException {
+    public static void download(String url, String accessToken, File target) throws IOException {
         HttpURLConnection c = open(url, accessToken);
         c.setInstanceFollowRedirects(false);
         int code = c.getResponseCode();

@@ -2,7 +2,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
-    <!-- OneDrive sync -->
+    <!-- Cloud sync (OneDrive, Google Drive) -->
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <!-- "Sync now" runs as a foreground job with a progress notification -->
@@ -36,9 +36,9 @@
             android:exported="false"
             android:theme="@style/Theme.PhotoDream.Fullscreen" />
 
-        <!-- OneDrive: folder browser -->
+        <!-- Cloud folder browser (OneDrive, Google Drive) -->
         <activity
-            android:name=".onedrive.OneDriveFolderActivity"
+            android:name=".cloud.CloudFolderActivity"
             android:exported="false" />
 
         <!-- OneDrive: the browser returns here after Microsoft sign-in (photodream://auth) -->
