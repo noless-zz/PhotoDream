@@ -238,4 +238,11 @@
     <string name="night_to">עד %1$s</string>
     <string name="night_dim_warm">עמעום וגוון חם (התמונות מתחלפות בחצי מהמהירות)</string>
     <string name="night_clock_only">שעון בלבד (מסך שחור)</string>
+    <string name="photo_favorite">מועדפת</string>
+    <string name="photo_hide">הסתרת התמונה</string>
+    <string name="photo_hidden_undo">התמונה הוסתרה · ביטול</string>
+    <string name="marks_favorites">תמונות מועדפות: %1$d</string>
+    <string name="marks_hidden">תמונות מוסתרות: %1$d</string>
+    <string name="marks_clear">ניקוי</string>
+    <string name="marks_show_again">הצגה מחדש</string>
 </resources>

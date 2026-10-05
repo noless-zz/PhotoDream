@@ -6,6 +6,9 @@ import android.animation.PropertyValuesHolder;
 import android.animation.ValueAnimator;
 import android.content.Context;
 import android.graphics.Bitmap;
+import android.graphics.Canvas;
+import android.graphics.Paint;
+import android.graphics.drawable.GradientDrawable;
 import android.graphics.Color;
 import android.graphics.Matrix;
 import android.os.Handler;
@@ -24,6 +27,7 @@ import android.view.animation.DecelerateInterpolator;
 import android.view.animation.OvershootInterpolator;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import java.util.ArrayList;
@@ -76,6 +80,32 @@ public class PhotoTableView extends FrameLayout implements PhotoDisplay {
         }
     }
 
+    /** A card: the photo with its border, plus a tiny heart in the corner when it is a favorite. */
+    private static final class CardImageView extends androidx.appcompat.widget.AppCompatImageView {
+        private final Paint heartPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        private boolean favorite;
+
+        CardImageView(Context c) {
+            super(c);
+            heartPaint.setColor(0xFFE0405A);
+            heartPaint.setShadowLayer(3f, 0f, 1f, 0x99000000);
+        }
+
+        void setFavorite(boolean on) {
+            favorite = on;
+            invalidate();
+        }
+
+        @Override
+        protected void onDraw(Canvas canvas) {
+            super.onDraw(canvas);
+            if (!favorite) return;
+            float size = Math.max(14f, getWidth() * 0.1f);
+            heartPaint.setTextSize(size);
+            canvas.drawText("\u2665", getWidth() - size * 1.4f, size * 1.3f, heartPaint);
+        }
+    }
+
     // settings
     private Prefs.Entry entry = Prefs.Entry.RANDOM;
     private int maxCards = 8;
@@ -83,6 +113,11 @@ public class PhotoTableView extends FrameLayout implements PhotoDisplay {
     private int maxRotation = 12;
     private boolean drift = true;
     private Map<String, Integer> frameColors = new HashMap<>();   // source id -> frame color
+    private PhotoMarksStore marks;
+    private PhotoQueue.Weights weights;
+    private LinearLayout focusButtons;                 // ♥ Favorite and ✕ Hide, shown while a photo is focused
+    private TextView btnFavorite;
+    private TextView undoPill;
     private long intervalMs = 10_000;
     private PhotoDisplay.Listener listener;
 
@@ -171,6 +206,11 @@ public class PhotoTableView extends FrameLayout implements PhotoDisplay {
     public void setCardSizePercent(int p) { cardSizePercent = clamp(p, 30, 80); }
     public void setMaxRotation(int deg) { maxRotation = clamp(deg, 0, 30); }
     public void setDrift(boolean on) { drift = on; }
+    /** Where favorites and hidden photos are kept; without it the focus buttons are not shown. */
+    public void setMarks(PhotoMarksStore store) { marks = store; }
+
+    @Override
+    public void setWeights(PhotoQueue.Weights w) { weights = w; }
     /** Border color per source id; sources without an entry keep the classic white frame. */
     public void setFrameColors(Map<String, Integer> colors) { frameColors = new HashMap<>(colors); }
 
@@ -188,6 +228,7 @@ public class PhotoTableView extends FrameLayout implements PhotoDisplay {
         removeAllCards();
         queue = new PhotoQueue(newPhotos, random);
         queue.setReshuffleOnWrap(new Prefs(getContext()).isShuffle());
+        queue.setWeights(weights);
         running = true;
         if (queue.isEmpty()) {
             messageView.setText(R.string.msg_no_photos);
@@ -206,6 +247,7 @@ public class PhotoTableView extends FrameLayout implements PhotoDisplay {
         handler.removeCallbacksAndMessages(null);
         for (Card c : cards) c.cancelAnimations();
         if (scrim != null) scrim.animate().cancel();
+        handler.removeCallbacks(hideUndo);
         endDrag();
     }
 
@@ -255,7 +297,8 @@ public class PhotoTableView extends FrameLayout implements PhotoDisplay {
         }
         int pad = Math.max(6, Math.round(w * 0.04f));
 
-        ImageView iv = new ImageView(getContext());
+        CardImageView iv = new CardImageView(getContext());
+        iv.setFavorite(marks != null && marks.marks().isFavorite(photo.key()));
         iv.setLayoutParams(new LayoutParams(w, h, Gravity.TOP | Gravity.START));
         iv.setScaleType(ImageView.ScaleType.CENTER_CROP);   // trims a sliver so the border never distorts the photo
         iv.setBackgroundColor(frameColors.getOrDefault(photo.sourceId, Color.WHITE));
@@ -363,6 +406,8 @@ public class PhotoTableView extends FrameLayout implements PhotoDisplay {
     }
 
     private void removeAllCards() {
+        if (focusButtons != null) focusButtons.setVisibility(GONE);
+        if (undoPill != null) undoPill.setVisibility(GONE);
         if (scrim != null) {
             scrim.animate().cancel();
             removeView(scrim);
@@ -527,6 +572,7 @@ public class PhotoTableView extends FrameLayout implements PhotoDisplay {
         int w = v.getLayoutParams().width, h = v.getLayoutParams().height;
         float scale = FitMath.fitScale(w, h, tableWidth(), tableHeight(), FOCUS_MARGIN);
         v.setTranslationZ(12 * density);
+        showFocusButtons(card);
         v.animate().translationX((tableWidth() - w) / 2f).translationY((tableHeight() - h) / 2f)
                 .rotation(0f).scaleX(scale).scaleY(scale)
                 .setDuration(FOCUS_MS).setInterpolator(new DecelerateInterpolator()).start();
@@ -554,6 +600,12 @@ public class PhotoTableView extends FrameLayout implements PhotoDisplay {
                     if (card.small != null) card.view.setImageBitmap(card.small);   // drop the big bitmap
                     startDrift(card);
                 }).start();
+        endFocusUi(card);
+    }
+
+    /** Scrim, buttons, other cards and the timer go back to normal after a focus ends (by unfocus or hide). */
+    private void endFocusUi(Card except) {
+        if (focusButtons != null) focusButtons.setVisibility(GONE);
         if (scrim != null) {
             final View s = scrim;
             s.animate().alpha(0f).setDuration(FOCUS_MS).withEndAction(() -> {
@@ -563,8 +615,119 @@ public class PhotoTableView extends FrameLayout implements PhotoDisplay {
                 }
             }).start();
         }
-        for (Card c : cards) if (c != card) startDrift(c);   // the others float again too
+        for (Card c : cards) if (c != except) startDrift(c);   // the others float again too
         if (running) handler.postDelayed(advance, intervalMs);
+    }
+
+    // ---------------------------------------------------------------- favorite / hide (focus mode)
+
+    private void showFocusButtons(Card card) {
+        if (marks == null) return;
+        if (focusButtons == null) {
+            focusButtons = new LinearLayout(getContext());
+            focusButtons.setOrientation(LinearLayout.HORIZONTAL);
+            LayoutParams lp = new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT,
+                    Gravity.BOTTOM | Gravity.CENTER_HORIZONTAL);
+            lp.bottomMargin = Math.round(24 * density);
+            focusButtons.setLayoutParams(lp);
+            btnFavorite = roundButton("\u2665", getContext().getString(R.string.photo_favorite));
+            TextView btnHide = roundButton("\u2715", getContext().getString(R.string.photo_hide));
+            btnFavorite.setOnClickListener(v -> toggleFavoriteOfFocused());
+            btnHide.setOnClickListener(v -> hideFocused());
+            focusButtons.addView(btnFavorite);
+            focusButtons.addView(btnHide);
+            addView(focusButtons);
+        }
+        focusButtons.setVisibility(VISIBLE);
+        focusButtons.bringToFront();
+        showHeartState(marks.marks().isFavorite(card.photo.key()));
+    }
+
+    private TextView roundButton(String glyph, String description) {
+        int size = Math.round(56 * density);
+        TextView b = new TextView(getContext());
+        b.setText(glyph);
+        b.setTextSize(24);
+        b.setGravity(Gravity.CENTER);
+        b.setContentDescription(description);
+        GradientDrawable bg = new GradientDrawable();
+        bg.setShape(GradientDrawable.OVAL);
+        bg.setColor(0xCC202020);
+        bg.setStroke(Math.round(1.5f * density), 0x66FFFFFF);
+        b.setBackground(bg);
+        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(size, size);
+        lp.setMargins(Math.round(10 * density), 0, Math.round(10 * density), 0);
+        b.setLayoutParams(lp);
+        b.setClickable(true);
+        return b;
+    }
+
+    private void showHeartState(boolean favorite) {
+        btnFavorite.setTextColor(favorite ? 0xFFE0405A : 0xFFFFFFFF);
+        btnFavorite.setSelected(favorite);
+    }
+
+    private void toggleFavoriteOfFocused() {
+        Card card = focused;
+        if (card == null || marks == null) return;
+        boolean now = marks.marks().toggleFavorite(card.photo.key());
+        marks.save();
+        ((CardImageView) card.view).setFavorite(now);
+        showHeartState(now);
+    }
+
+    /** Hide: the photo leaves the table for good; an Undo pill stays for 5 seconds. */
+    private void hideFocused() {
+        final Card card = focused;
+        if (card == null || marks == null) return;
+        marks.marks().hide(card.photo.key());
+        marks.save();
+        queue.exclude(card.photo);
+        focused = null;
+        focusLoader.cancel();
+        cards.remove(card);
+        card.cancelAnimations();
+        card.view.animate().alpha(0f).scaleX(0.6f).scaleY(0.6f).setDuration(FOCUS_MS)
+                .withEndAction(() -> discard(card.view)).start();
+        endFocusUi(card);
+        showUndo(card.photo);
+    }
+
+    private final Runnable hideUndo = () -> {
+        if (undoPill != null) undoPill.setVisibility(GONE);
+    };
+
+    private void showUndo(Photo photo) {
+        if (undoPill == null) {
+            undoPill = new TextView(getContext());
+            undoPill.setTextColor(0xFFFFFFFF);
+            undoPill.setTextSize(16);
+            undoPill.setGravity(Gravity.CENTER);
+            int padH = Math.round(20 * density), padV = Math.round(12 * density);
+            undoPill.setPadding(padH, padV, padH, padV);
+            GradientDrawable bg = new GradientDrawable();
+            bg.setCornerRadius(40 * density);
+            bg.setColor(0xDD202020);
+            undoPill.setBackground(bg);
+            LayoutParams lp = new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT,
+                    Gravity.BOTTOM | Gravity.CENTER_HORIZONTAL);
+            lp.bottomMargin = Math.round(24 * density);
+            undoPill.setLayoutParams(lp);
+            undoPill.setMinimumHeight(Math.round(48 * density));
+            addView(undoPill);
+        }
+        undoPill.setText(R.string.photo_hidden_undo);
+        undoPill.setOnClickListener(v -> {
+            marks.marks().unhide(photo.key());
+            marks.save();
+            queue.include(photo);
+            undoPill.setVisibility(GONE);
+            handler.removeCallbacks(hideUndo);
+        });
+        undoPill.setVisibility(VISIBLE);
+        undoPill.bringToFront();
+        handler.removeCallbacks(hideUndo);
+        handler.postDelayed(hideUndo, 5000);
     }
 
     /** Throw the card off the table in the direction of the flick. */

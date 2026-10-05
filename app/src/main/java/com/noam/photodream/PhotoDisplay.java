@@ -26,5 +26,8 @@ public interface PhotoDisplay {
 
     void setIntervalSeconds(int seconds);
 
+    /** How often each photo should come up (favorites more often); null = every photo equally, in order. */
+    void setWeights(PhotoQueue.Weights weights);
+
     void setListener(Listener listener);
 }

@@ -231,4 +231,11 @@
     <string name="night_to">To %1$s</string>
     <string name="night_dim_warm">Dim and warm (photos change half as often)</string>
     <string name="night_clock_only">Clock only (black screen)</string>
+    <string name="photo_favorite">Favorite</string>
+    <string name="photo_hide">Hide this photo</string>
+    <string name="photo_hidden_undo">Photo hidden · Undo</string>
+    <string name="marks_favorites">Favorites: %1$d</string>
+    <string name="marks_hidden">Hidden photos: %1$d</string>
+    <string name="marks_clear">Clear</string>
+    <string name="marks_show_again">Show again</string>
 </resources>

@@ -74,13 +74,35 @@ public class PhotosSettingsActivity extends SettingsScreen {
         localFrame.setSelected(prefs.getFrameColor("local"));
         localFrame.setOnPick(id -> prefs.setFrameColor("local", id));
         setupSwitch(R.id.sw_strip, prefs.isSourceStrip(), prefs::setSourceStrip);
+        findViewById(R.id.btn_clear_favorites).setOnClickListener(v -> {
+            PhotoMarksStore store = PhotoMarksStore.get(this);
+            store.marks().clearFavorites();
+            store.save();
+            showMarkCounts();
+        });
+        findViewById(R.id.btn_show_hidden).setOnClickListener(v -> {
+            PhotoMarksStore store = PhotoMarksStore.get(this);
+            store.marks().clearHidden();
+            store.save();
+            showMarkCounts();
+            refreshFolderInfo();
+        });
 
         setupClouds();
+    }
+
+    private void showMarkCounts() {
+        PhotoMarks m = PhotoMarksStore.get(this).marks();
+        ((TextView) findViewById(R.id.txt_favorites)).setText(getString(R.string.marks_favorites, m.favoriteCount()));
+        ((TextView) findViewById(R.id.txt_hidden)).setText(getString(R.string.marks_hidden, m.hiddenCount()));
+        findViewById(R.id.btn_clear_favorites).setEnabled(m.favoriteCount() > 0);
+        findViewById(R.id.btn_show_hidden).setEnabled(m.hiddenCount() > 0);
     }
 
     @Override
     protected void onResume() {
         super.onResume();
+        showMarkCounts();
         refreshFolderInfo();
         refreshClouds();
     }

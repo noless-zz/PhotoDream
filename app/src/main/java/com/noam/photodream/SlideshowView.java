@@ -58,6 +58,7 @@ public class SlideshowView extends FrameLayout implements PhotoDisplay {
     private final GestureDetector gestures;
 
     private PhotoQueue queue = new PhotoQueue(new ArrayList<>(), new Random());
+    private PhotoQueue.Weights weights;
     private boolean running;
     private boolean paused;
     private Animator kenBurns;
@@ -147,6 +148,9 @@ public class SlideshowView extends FrameLayout implements PhotoDisplay {
         if (!on) strip.setVisibility(GONE);
     }
 
+    @Override
+    public void setWeights(PhotoQueue.Weights w) { weights = w; }
+
     // ---------------------------------------------------------------- control
 
     /** Start (or restart) with a new list of photos. Call on the main thread. */
@@ -154,6 +158,7 @@ public class SlideshowView extends FrameLayout implements PhotoDisplay {
     public void start(List<Photo> newPhotos) {
         queue = new PhotoQueue(newPhotos, random);
         queue.setReshuffleOnWrap(new Prefs(getContext()).isShuffle());
+        queue.setWeights(weights);
         running = true;
         paused = false;
         if (queue.isEmpty()) {

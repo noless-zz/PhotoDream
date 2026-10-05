@@ -61,6 +61,12 @@ public final class PhotoQueue {
     /** Remember that this photo can't be shown; it is skipped from now on. */
     public void markFailed(Photo photo) { failed.add(photo.key()); }
 
+    /** Same effect, for photos the user hid: skipped from now on. */
+    public void exclude(Photo photo) { failed.add(photo.key()); }
+
+    /** The Undo after hiding: the photo may come up again. */
+    public void include(Photo photo) { failed.remove(photo.key()); }
+
     /** The next photo, or null if nothing can be shown. */
     public Photo next() {
         for (int i = cursor + 1; i < history.size(); i++) {      // we went back earlier: replay forward

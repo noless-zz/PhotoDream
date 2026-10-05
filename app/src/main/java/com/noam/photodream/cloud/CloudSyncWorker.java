@@ -17,6 +17,7 @@ import androidx.work.ForegroundInfo;
 import androidx.work.Worker;
 import androidx.work.WorkerParameters;
 
+import com.noam.photodream.PhotoMarksStore;
 import com.noam.photodream.R;
 import com.noam.photodream.source.CacheFolderSource;
 
@@ -172,7 +173,14 @@ public class CloudSyncWorker extends Worker {
         failures.retainOnly(new HashSet<>(remoteIds));
         Set<String> unsupported = failures.excluded();
 
-        SyncPlanner.Plan plan = SyncPlanner.plan(remoteIds, cachedIds, unsupported, prefs.getMaxPhotos(),
+        // photos the user marked as favorite stay in the cache (marks are stored by file name)
+        Set<String> favoriteNames = PhotoMarksStore.get(ctx).marks().favoriteNamesIn(provider.id());
+        Set<String> favoriteIds = new HashSet<>();
+        for (Map.Entry<String, String> e : fileForId.entrySet()) {
+            if (favoriteNames.contains(e.getValue())) favoriteIds.add(e.getKey());
+        }
+
+        SyncPlanner.Plan plan = SyncPlanner.plan(remoteIds, cachedIds, unsupported, favoriteIds, prefs.getMaxPhotos(),
                 ROTATE_FRACTION, new Random());
 
         // photos deleted from the cloud go right away

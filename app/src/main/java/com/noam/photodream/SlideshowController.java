@@ -64,6 +64,7 @@ public class SlideshowController {
             table.setCardSizePercent(prefs.getTableCardSize());
             table.setMaxRotation(prefs.getTableRotation());
             table.setDrift(prefs.isTableDrift());
+            table.setMarks(PhotoMarksStore.get(context));
             table.setFrameColors(frameColors(prefs));
             display = table;
         } else {
@@ -89,9 +90,13 @@ public class SlideshowController {
             List<Photo> photos = PhotoRepository.loadAll(context);
             main.post(() -> {
                 if (started && display == target) {
-                    loadedPhotos = photos;
+                    // hidden photos never show; favorites come up 3x as often
+                    PhotoMarksStore store = PhotoMarksStore.get(context);
+                    List<Photo> visible = store.marks().visible(photos);
+                    target.setWeights(store.marks().hasFavoriteIn(visible) ? store.marks()::weight : null);
+                    loadedPhotos = visible;
                     applyNight();                 // sets the night look and the interval, then starts when appropriate
-                    if (!(night && nightStyle == Prefs.NightStyle.CLOCK_ONLY)) target.start(photos);
+                    if (!(night && nightStyle == Prefs.NightStyle.CLOCK_ONLY)) target.start(visible);
                 }
             });
         });

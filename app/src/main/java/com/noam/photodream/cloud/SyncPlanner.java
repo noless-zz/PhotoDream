@@ -44,28 +44,48 @@ public final class SyncPlanner {
 
     public static Plan plan(List<String> remote, Set<String> cached, Set<String> excluded, int target,
                             double rotateFraction, Random random) {
+        return plan(remote, cached, excluded, Collections.<String>emptySet(), target, rotateFraction, random);
+    }
+
+    /**
+     * @param favorites ids of photos the user marked as favorite: they are never rotated out or
+     *                  trimmed (even above {@code target}); only deleting them in the cloud removes them
+     */
+    public static Plan plan(List<String> remote, Set<String> cached, Set<String> excluded, Set<String> favorites,
+                            int target, double rotateFraction, Random random) {
         Plan p = new Plan();
         Set<String> remoteSet = new HashSet<>(remote);
         remoteSet.removeAll(excluded);
 
-        // 1. cached photos that still exist in OneDrive, in random order
+        // 1. cached photos that still exist in the cloud; favorites are set aside, the rest in random order
         List<String> stillThere = new ArrayList<>();
+        List<String> favs = new ArrayList<>();
         for (String id : cached) {
-            if (remoteSet.contains(id)) stillThere.add(id);
-            else p.gone.add(id);                        // deleted from OneDrive
+            if (remoteSet.contains(id)) {
+                stillThere.add(id);
+                if (favorites.contains(id)) favs.add(id);
+            } else {
+                p.gone.add(id);                          // deleted from the cloud
+            }
         }
-        Collections.shuffle(stillThere, random);
+        List<String> others = new ArrayList<>(stillThere);
+        others.removeAll(favs);
+        Collections.shuffle(others, random);
+        p.keep.addAll(favs);
 
-        // 2. how many to keep: leave room for fresh ones if OneDrive has more to offer
+        // 2. how many of the others to keep: leave room for fresh ones if the cloud has more to offer
         int notCached = remoteSet.size() - stillThere.size();
         // rotate only once the cache is full – while still filling up, just add
         int rotate = (notCached > 0 && stillThere.size() >= target)
                 ? (int) Math.round(target * rotateFraction) : 0;
-        int keepCount = Math.min(stillThere.size(), Math.max(0, target - Math.max(rotate, 0)));
-        if (keepCount + notCached < target) keepCount = Math.min(stillThere.size(), target - notCached);
-        for (int i = 0; i < stillThere.size(); i++) {
-            if (i < keepCount) p.keep.add(stillThere.get(i));
-            else p.delete.add(stillThere.get(i));
+        int roomForOthers = Math.max(0, target - favs.size());
+        int keepCount = Math.min(others.size(), Math.max(0, roomForOthers - Math.max(rotate, 0)));
+        if (keepCount + favs.size() + notCached < target) {
+            keepCount = Math.min(others.size(), Math.max(0, roomForOthers - notCached));
+        }
+        for (int i = 0; i < others.size(); i++) {
+            if (i < keepCount) p.keep.add(others.get(i));
+            else p.delete.add(others.get(i));
         }
 
         // 3. fill up with random photos we don't have yet
@@ -73,7 +93,7 @@ public final class SyncPlanner {
         for (String id : remoteSet) if (!cached.contains(id)) candidates.add(id);
         Collections.sort(candidates);                     // stable before shuffling (testable)
         Collections.shuffle(candidates, random);
-        int room = target - p.keep.size();
+        int room = Math.max(0, target - p.keep.size());
         for (int i = 0; i < candidates.size() && i < room; i++) p.download.add(candidates.get(i));
         return p;
     }

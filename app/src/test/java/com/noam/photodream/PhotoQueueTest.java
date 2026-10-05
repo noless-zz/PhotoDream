@@ -97,6 +97,17 @@ public class PhotoQueueTest {
     }
 
     @Test
+    public void excludedPhotosAreSkippedUntilIncludedAgain() {
+        PhotoQueue q = ordered(3);
+        q.exclude(new Photo(null, "local", "p1"));
+        assertEquals("p0", q.next().name);
+        assertEquals("p2", q.next().name);
+        assertEquals("p0", q.next().name);
+        q.include(new Photo(null, "local", "p1"));
+        assertEquals("p1", q.next().name);
+    }
+
+    @Test
     public void emptyListGivesNull() {
         PhotoQueue q = new PhotoQueue(new ArrayList<>(), new Random(1));
         assertTrue(q.isEmpty());
