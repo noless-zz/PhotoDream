@@ -247,4 +247,8 @@
     <string name="marks_show_again">הצגה מחדש</string>
     <string name="cloud_my_files">הקבצים שלי</string>
     <string name="cloud_shared_with_me">שותף איתי</string>
+    <string name="widget_label">תמונה מ־PhotoDream</string>
+    <string name="widget_description">תמונה אקראית מהתיקיות והענן שלך, מתחלפת כל חצי שעה. הקשה פותחת תצוגה מקדימה.</string>
+    <string name="widget_empty">פתחו את PhotoDream ובחרו תמונות</string>
+    <string name="widget_image_description">תמונה אקראית</string>
 </resources>

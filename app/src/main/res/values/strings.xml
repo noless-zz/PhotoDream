@@ -240,4 +240,8 @@
     <string name="marks_show_again">Show again</string>
     <string name="cloud_my_files">My files</string>
     <string name="cloud_shared_with_me">Shared with me</string>
+    <string name="widget_label">PhotoDream photo</string>
+    <string name="widget_description">A random photo from your folders and clouds, changing every half hour. Tap to open the preview.</string>
+    <string name="widget_empty">Open PhotoDream and choose some photos</string>
+    <string name="widget_image_description">Random photo</string>
 </resources>
