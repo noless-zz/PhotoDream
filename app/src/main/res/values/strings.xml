@@ -222,4 +222,5 @@
     <string name="flip_card">Photo card %1$d</string>
     <string name="challenge_runaway">Catch the runaway photo</string>
     <string name="runaway_card">Runaway photo</string>
+    <string name="challenge_memory">Memory pairs</string>
 </resources>
