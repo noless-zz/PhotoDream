@@ -60,5 +60,6 @@ dependencies {
     implementation libs.activity
     implementation libs.work.runtime
     implementation libs.play.services.auth
+    implementation libs.mlkit.face.detection      // on-device faces for smart cropping (issue #29)
     testImplementation libs.junit
 }

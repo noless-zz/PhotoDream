@@ -7,6 +7,7 @@ import android.animation.PropertyValuesHolder;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Color;
+import android.graphics.Matrix;
 import android.os.Handler;
 import android.os.Looper;
 import android.util.AttributeSet;
@@ -22,6 +23,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
@@ -49,6 +51,7 @@ public class SlideshowView extends FrameLayout implements PhotoDisplay {
     private static final long RETRY_MS = 300;
 
     private final ImageView[] imageViews = new ImageView[2];
+    private int showToken;                        // makes late face-detection answers harmless
     private int front = 0;                       // index into imageViews currently visible
     private final TextView messageView;
 
@@ -214,6 +217,7 @@ public class SlideshowView extends FrameLayout implements PhotoDisplay {
             return;
         }
 
+        final int token = ++showToken;
         bitmaps.load(photo.uri, targetLongSide(), bmp -> {
             if (!running) return;                    // stopped while decoding (a newer swipe replaces this request)
             if (bmp == null) {
@@ -222,8 +226,17 @@ public class SlideshowView extends FrameLayout implements PhotoDisplay {
                 handler.postDelayed(() -> show(forward ? 1 : -1), RETRY_MS);
                 return;
             }
-            display(bmp, forward, photo);
-            scheduleNext();
+            if (crop || transition == Transition.KEN_BURNS) {
+                // faces decide the crop and the zoom point; the answer is instant for photos seen before
+                FaceFinder.get(getContext()).find(photo, bmp, faces -> {
+                    if (!running || token != showToken) return;   // the user swiped on in the meantime
+                    display(bmp, forward, photo, faces);
+                    scheduleNext();
+                });
+            } else {
+                display(bmp, forward, photo, Collections.<float[]>emptyList());
+                scheduleNext();
+            }
         });
     }
 
@@ -231,7 +244,7 @@ public class SlideshowView extends FrameLayout implements PhotoDisplay {
         if (running && !paused) handler.postDelayed(advance, intervalMs);
     }
 
-    private void display(Bitmap bmp, boolean forward, Photo photo) {
+    private void display(Bitmap bmp, boolean forward, Photo photo, List<float[]> faces) {
         cancelAnimations();
         if (showStrip) {
             strip.setBackgroundColor(frameColors.getOrDefault(photo.sourceId, Color.WHITE));
@@ -243,6 +256,17 @@ public class SlideshowView extends FrameLayout implements PhotoDisplay {
         resetView(incoming);
         if (listener != null) listener.onPhotoShown(photo);
         incoming.setImageBitmap(bmp);
+        // no faces: the normal centre crop / fit; with faces and "fill screen": our own face-aware crop
+        incoming.setScaleType(crop ? ImageView.ScaleType.CENTER_CROP : ImageView.ScaleType.FIT_CENTER);
+        float[] zoomPoint = null;
+        if (!faces.isEmpty() && getWidth() > 0 && getHeight() > 0) {
+            Matrix m = FaceCrop.matrix(bmp.getWidth(), bmp.getHeight(), getWidth(), getHeight(), crop, faces);
+            if (crop) {
+                incoming.setScaleType(ImageView.ScaleType.MATRIX);
+                incoming.setImageMatrix(m);
+            }
+            zoomPoint = FaceCrop.focusInView(bmp.getWidth(), bmp.getHeight(), m, faces);
+        }
         incoming.bringToFront();
         strip.bringToFront();
         messageView.bringToFront();
@@ -269,6 +293,13 @@ public class SlideshowView extends FrameLayout implements PhotoDisplay {
                 // slow zoom + drift for the whole time the photo is on screen
                 float endScale = 1.12f + random.nextFloat() * 0.08f;
                 float drift = (random.nextFloat() - 0.5f) * width * 0.06f;
+                if (zoomPoint != null) {
+                    // zoom toward the faces instead of drifting at random
+                    incoming.setPivotX(zoomPoint[0]);
+                    incoming.setPivotY(zoomPoint[1]);
+                    endScale = 1.18f;
+                    drift = 0f;
+                }
                 ObjectAnimator zoom = ObjectAnimator.ofPropertyValuesHolder(incoming,
                         PropertyValuesHolder.ofFloat(View.SCALE_X, 1f, endScale),
                         PropertyValuesHolder.ofFloat(View.SCALE_Y, 1f, endScale),
@@ -284,6 +315,7 @@ public class SlideshowView extends FrameLayout implements PhotoDisplay {
 
     private void resetView(ImageView v) {
         v.animate().cancel();
+        v.resetPivot();                              // Ken Burns may have moved the zoom point onto a face
         v.setAlpha(1f);
         v.setTranslationX(0f);
         v.setScaleX(1f);
