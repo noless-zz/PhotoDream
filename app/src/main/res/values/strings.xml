@@ -163,4 +163,6 @@
     <string name="report_subject">PhotoDream problem report</string>
     <string name="report_preparing">Preparing report…</string>
     <string name="report_failed">Could not create the report</string>
+    <string name="alarm_channel">Alarms</string>
+    <string name="alarm_ringing">Wake-up alarm</string>
 </resources>

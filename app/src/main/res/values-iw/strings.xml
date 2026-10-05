@@ -169,4 +169,6 @@
     <string name="report_subject">דוח תקלה של PhotoDream</string>
     <string name="report_preparing">מכין דוח…</string>
     <string name="report_failed">לא ניתן היה ליצור את הדוח</string>
+    <string name="alarm_channel">שעוני מעורר</string>
+    <string name="alarm_ringing">שעון מעורר</string>
 </resources>
