@@ -20,15 +20,26 @@ import android.widget.Toast;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.IntentSenderRequest;
 import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.work.ExistingWorkPolicy;
 
 import com.google.android.material.button.MaterialButton;
 import com.noam.photodream.cloud.CloudProvider;
 import com.noam.photodream.cloud.CloudProviders;
 import com.noam.photodream.cloud.CloudSourceView;
+import com.google.mlkit.genai.common.DownloadCallback;
+import com.google.mlkit.genai.common.FeatureStatus;
+import com.google.mlkit.genai.common.GenAiException;
+import com.noam.photodream.describe.DescriptionJob;
+import com.noam.photodream.describe.DescriptionStore;
+import com.noam.photodream.describe.DescriptionWorker;
+import com.noam.photodream.describe.GenAiDescriber;
 import com.noam.photodream.source.LocalFolderSource;
 import com.noam.photodream.source.PhotoSource;
 
 import java.util.ArrayList;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -88,7 +99,88 @@ public class PhotosSettingsActivity extends SettingsScreen {
             refreshFolderInfo();
         });
 
+        setupDescriptions();
         setupClouds();
+    }
+
+    // ---------------------------------------------------------------- photo descriptions
+
+    private final GenAiDescriber genAiProbe = new GenAiDescriber();
+    private final ExecutorService describeIo = Executors.newSingleThreadExecutor();
+    private final AtomicBoolean describeCancel = new AtomicBoolean();
+    private boolean preparing;
+
+    private void setupDescriptions() {
+        setupSwitch(R.id.sw_describe_hebrew, prefs.isDescribeHebrew(), prefs::setDescribeHebrew);
+        findViewById(R.id.btn_prepare_descriptions).setOnClickListener(v -> {
+            if (preparing) describeCancel.set(true); else prepareDescriptions();
+        });
+    }
+
+    /** "12 of 200 photos described · labels only" – counted off the main thread. */
+    private void refreshDescriptionStatus() {
+        describeIo.execute(() -> {
+            List<Photo> photos = PhotoMarksStore.get(this).marks().visible(PhotoRepository.loadAll(this));
+            List<String> keys = new ArrayList<>();
+            for (Photo p : photos) keys.add(p.key());
+            int described = DescriptionStore.get(this).cache().countDescribed(keys, false);
+            int engine = genAiProbe.status(this);
+            int engineText = engine == FeatureStatus.AVAILABLE ? R.string.describe_engine_sentences
+                    : engine == FeatureStatus.DOWNLOADABLE || engine == FeatureStatus.DOWNLOADING
+                    ? R.string.describe_engine_downloadable : R.string.describe_engine_labels;
+            runOnUiThread(() -> {
+                if (!preparing) {
+                    ((TextView) findViewById(R.id.txt_describe_status)).setText(
+                            getString(R.string.describe_status, described, keys.size(), getString(engineText)));
+                }
+            });
+        });
+    }
+
+    /**
+     * Runs the description job in the foreground: Gemini Nano sentences are only allowed while
+     * PhotoDream is the top app, so the screen stays on until it is finished (or cancelled).
+     */
+    private void prepareDescriptions() {
+        preparing = true;
+        describeCancel.set(false);
+        MaterialButton button = findViewById(R.id.btn_prepare_descriptions);
+        button.setText(R.string.describe_cancel);
+        getWindow().addFlags(android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+        TextView status = findViewById(R.id.txt_describe_status);
+        status.setText(R.string.describe_working);
+
+        describeIo.execute(() -> {
+            try {
+                if (genAiProbe.status(this) == FeatureStatus.DOWNLOADABLE) downloadGeminiNano(status);
+                DescriptionJob.run(this, true, Integer.MAX_VALUE, describeCancel, (done, total) ->
+                        runOnUiThread(() -> status.setText(getString(R.string.describe_progress, done, total))));
+            } finally {
+                runOnUiThread(() -> {
+                    preparing = false;
+                    button.setText(R.string.describe_prepare);
+                    getWindow().clearFlags(android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+                    refreshDescriptionStatus();
+                });
+            }
+        });
+    }
+
+    /** Waits (up to 15 min) for the on-device Gemini Nano model to download. */
+    private void downloadGeminiNano(TextView status) {
+        CountDownLatch done = new CountDownLatch(1);
+        runOnUiThread(() -> status.setText(R.string.describe_downloading));
+        genAiProbe.download(this, new DownloadCallback() {
+            @Override public void onDownloadStarted(long bytesToDownload) { }
+            @Override public void onDownloadProgress(long bytesDownloaded) { }
+            @Override public void onDownloadCompleted() { done.countDown(); }
+            @Override public void onDownloadFailed(GenAiException e) { done.countDown(); }
+        });
+        try {
+            done.await(15, TimeUnit.MINUTES);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
     }
 
     private void showMarkCounts() {
@@ -104,11 +196,16 @@ public class PhotosSettingsActivity extends SettingsScreen {
         super.onResume();
         showMarkCounts();
         refreshFolderInfo();
+        refreshDescriptionStatus();
+        DescriptionWorker.schedule(this, ExistingWorkPolicy.KEEP);      // label new photos while charging
         refreshClouds();
     }
 
     @Override
     protected void onDestroy() {
+        describeCancel.set(true);
+        describeIo.shutdownNow();
+        genAiProbe.close();
         io.shutdownNow();
         super.onDestroy();
     }

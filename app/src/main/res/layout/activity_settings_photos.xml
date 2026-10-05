@@ -111,6 +111,36 @@
                 android:text="@string/marks_show_again" />
         </LinearLayout>
 
+        <!-- ===== Photo descriptions (for the "find the photo" alarm game) ===== -->
+        <TextView
+            style="@style/SectionTitle"
+            android:text="@string/describe_title" />
+
+        <TextView
+            android:id="@+id/txt_describe_status"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+
+        <com.google.android.material.materialswitch.MaterialSwitch
+            android:id="@+id/sw_describe_hebrew"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:minHeight="48dp"
+            android:text="@string/describe_hebrew" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_prepare_descriptions"
+            style="@style/Widget.Material3.Button.OutlinedButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/describe_prepare" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:alpha="0.7"
+            android:text="@string/describe_hint" />
+
         <com.google.android.material.materialswitch.MaterialSwitch
             android:id="@+id/sw_strip"
             android:layout_width="match_parent"

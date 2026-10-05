@@ -260,4 +260,16 @@
         <item quantity="two">לפני שנתיים</item>
         <item quantity="other">לפני %1$d שנים</item>
     </plurals>
+    <string name="describe_title">תיאורי תמונות</string>
+    <string name="describe_status">תמונות שתוארו: %1$d / %2$d · %3$s</string>
+    <string name="describe_engine_labels">תגיות בלבד (בטלפון הזה אין מודל בינה מלאכותית מקומי)</string>
+    <string name="describe_engine_sentences">תגיות ומשפטים (Gemini Nano)</string>
+    <string name="describe_engine_downloadable">תגיות בלבד – אפשר להוריד את Gemini Nano</string>
+    <string name="describe_hebrew">תיאורים בעברית</string>
+    <string name="describe_prepare">הכנת תיאורים</string>
+    <string name="describe_cancel">עצירה</string>
+    <string name="describe_working">מתאר תמונות…</string>
+    <string name="describe_downloading">מוריד את מודל הבינה המלאכותית…</string>
+    <string name="describe_progress">מתאר תמונות… %1$d / %2$d</string>
+    <string name="describe_hint">התיאורים נוצרים בטלפון עצמו, ואף תמונה לא יוצאת ממנו. תגיות מתווספות ברקע בזמן טעינה. משפטים דורשים טלפון חדש יותר ומסך דולק – לוחצים על הכפתור ומשאירים את האפליקציה פתוחה. חבילת השפה העברית מורדת פעם אחת, ב־Wi‑Fi.</string>
 </resources>

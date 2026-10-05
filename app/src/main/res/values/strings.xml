@@ -252,4 +252,16 @@
         <item quantity="one">%1$d year ago</item>
         <item quantity="other">%1$d years ago</item>
     </plurals>
+    <string name="describe_title">Photo descriptions</string>
+    <string name="describe_status">Photos described: %1$d / %2$d · %3$s</string>
+    <string name="describe_engine_labels">labels only (this phone has no on-device AI model)</string>
+    <string name="describe_engine_sentences">labels and sentences (Gemini Nano)</string>
+    <string name="describe_engine_downloadable">labels only – Gemini Nano can be downloaded</string>
+    <string name="describe_hebrew">Describe in Hebrew</string>
+    <string name="describe_prepare">Prepare descriptions</string>
+    <string name="describe_cancel">Stop</string>
+    <string name="describe_working">Describing photos…</string>
+    <string name="describe_downloading">Downloading the on-device AI model…</string>
+    <string name="describe_progress">Describing photos… %1$d / %2$d</string>
+    <string name="describe_hint">Descriptions are made on this phone; no photo leaves it. Labels are added in the background while the phone charges. Sentences need a newer phone and the screen on, so press the button and keep the app open. The Hebrew language pack is downloaded once, on Wi-Fi.</string>
 </resources>

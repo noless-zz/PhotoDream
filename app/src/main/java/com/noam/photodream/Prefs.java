@@ -135,6 +135,13 @@ public class Prefs {
     public boolean isOnThisDay() { return sp.getBoolean("on_this_day", true); }
     public void setOnThisDay(boolean on) { sp.edit().putBoolean("on_this_day", on).apply(); }
 
+    /** Translate descriptions to Hebrew on the phone (default: on when the phone's language is Hebrew). */
+    public boolean isDescribeHebrew() {
+        String lang = java.util.Locale.getDefault().getLanguage();
+        return sp.getBoolean("describe_hebrew", "iw".equals(lang) || "he".equals(lang));
+    }
+    public void setDescribeHebrew(boolean on) { sp.edit().putBoolean("describe_hebrew", on).apply(); }
+
     /** When we last asked GitHub for a newer release (epoch ms), and the newest tag it told us about. */
     public long getUpdateCheckedAt() { return sp.getLong("update_checked_at", 0); }
     public void setUpdateCheckedAt(long ms) { sp.edit().putLong("update_checked_at", ms).apply(); }

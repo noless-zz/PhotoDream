@@ -137,6 +137,8 @@ public class CloudSyncWorker extends Worker {
         } finally {
             running.unlock();
         }
+        // new photos arrived: describe them while charging (labels, on the phone)
+        com.noam.photodream.describe.DescriptionWorker.schedule(ctx, androidx.work.ExistingWorkPolicy.KEEP);
         // "Sync now" paused the regular schedule – bring it back once we are done for good
         if (syncNow && !result.equals(Result.retry())) CloudScheduler.schedule(ctx, provider, 6);
         return result;
