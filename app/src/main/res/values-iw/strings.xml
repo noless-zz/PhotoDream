@@ -245,4 +245,6 @@
     <string name="marks_hidden">תמונות מוסתרות: %1$d</string>
     <string name="marks_clear">ניקוי</string>
     <string name="marks_show_again">הצגה מחדש</string>
+    <string name="cloud_my_files">הקבצים שלי</string>
+    <string name="cloud_shared_with_me">שותף איתי</string>
 </resources>

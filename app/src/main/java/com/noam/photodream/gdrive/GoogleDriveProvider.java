@@ -180,7 +180,10 @@ public class GoogleDriveProvider implements CloudProvider {
 
     @Override
     public List<CloudItem> listChildren(Context c, String folderId) throws IOException {
-        String q = "'" + folderId.replace("'", "\\'") + "' in parents and trashed = false";
+        String q = CloudProvider.SHARED_WITH_ME.equals(folderId)
+                // folders other people shared with me; their children are listed the normal way
+                ? "sharedWithMe = true and mimeType = '" + FOLDER_MIME + "' and trashed = false"
+                : "'" + folderId.replace("'", "\\'") + "' in parents and trashed = false";
         String base = API + "/files?pageSize=1000&fields="
                 + Uri.encode("nextPageToken,files(id,name,mimeType)")
                 + "&q=" + Uri.encode(q);

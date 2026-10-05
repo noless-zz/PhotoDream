@@ -54,8 +54,14 @@ public interface CloudProvider {
     /** Forget the account on this phone. */
     void signOut(Context context);
 
-    /** Id of the drive's root folder. */
+    /** Id of the drive's root folder ("My files"). */
     String rootId();
+
+    /**
+     * Pseudo folder id: {@link #listChildren} of it returns the folders other people shared with the
+     * user (class albums, trip photos …). Browse into them with their own ids as usual.
+     */
+    String SHARED_WITH_ME = "@sharedWithMe";
 
     /** Blocking. Children of a folder. */
     List<CloudItem> listChildren(Context context, String folderId) throws IOException;

@@ -19,7 +19,8 @@ registering the app (free) in the Microsoft Entra admin center.
 3. On the app's **Overview** page copy the **Application (client) ID**
    (looks like `1a2b3c4d-....`).
 4. (Optional, makes the consent screen tidy) **API permissions → Add a permission →
-   Microsoft Graph → Delegated**: `Files.Read`, `User.Read`, `offline_access`.
+   Microsoft Graph → Delegated**: `Files.Read`, `Files.Read.All` (needed for "Shared with me" folders), `User.Read`, `offline_access`.
+   Users who connected before version 0.4 are asked to agree once more the next time they sign in.
    No admin consent is needed for personal accounts.
 
 No client secret is needed — the app uses PKCE.

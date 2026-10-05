@@ -238,4 +238,6 @@
     <string name="marks_hidden">Hidden photos: %1$d</string>
     <string name="marks_clear">Clear</string>
     <string name="marks_show_again">Show again</string>
+    <string name="cloud_my_files">My files</string>
+    <string name="cloud_shared_with_me">Shared with me</string>
 </resources>
