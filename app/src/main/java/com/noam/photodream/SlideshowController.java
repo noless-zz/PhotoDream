@@ -30,6 +30,8 @@ public class SlideshowController {
     private final Handler main = new Handler(Looper.getMainLooper());
     private PhotoDisplay display;
     private boolean started;
+    private BurnInWalk burnIn;
+    private final Runnable moveClock = this::moveClock;
 
     public SlideshowController(Context context, View root, PhotoDisplay.Listener listener) {
         this.context = context;
@@ -65,6 +67,7 @@ public class SlideshowController {
         clockBox.setVisibility(prefs.isShowClock() ? View.VISIBLE : View.GONE);
 
         started = true;
+        startBurnInProtection(prefs.isShowClock());
         final PhotoDisplay target = display;
         io.execute(() -> {
             List<Photo> photos = PhotoRepository.loadAll(context);
@@ -72,6 +75,34 @@ public class SlideshowController {
                 if (started && display == target) target.start(photos);
             });
         });
+    }
+
+    // ---------------------------------------------------------------- burn-in protection
+
+    private static final long BURN_IN_INTERVAL_MS = 60_000;
+
+    /** OLED screens can burn in a clock that never moves: nudge it a few dp every minute. */
+    private void startBurnInProtection(boolean clockShown) {
+        main.removeCallbacks(moveClock);
+        if (!clockShown) return;
+        float dp = context.getResources().getDisplayMetrics().density;
+        burnIn = new BurnInWalk(24 * dp, 8 * dp, new java.util.Random());
+        main.postDelayed(moveClock, BURN_IN_INTERVAL_MS);
+    }
+
+    private void moveClock() {
+        if (!started || burnIn == null) return;
+        burnIn.step();
+        // "Remove animations" in the phone's settings means: move without animating
+        float scale = android.provider.Settings.Global.getFloat(context.getContentResolver(),
+                android.provider.Settings.Global.ANIMATOR_DURATION_SCALE, 1f);
+        if (scale == 0f) {
+            clockBox.setTranslationX(burnIn.x());
+            clockBox.setTranslationY(burnIn.y());
+        } else {
+            clockBox.animate().translationX(burnIn.x()).translationY(burnIn.y()).setDuration(1000).start();
+        }
+        main.postDelayed(moveClock, BURN_IN_INTERVAL_MS);
     }
 
     /** Frame color (ARGB) for every source id; sources not listed use classic white. */
@@ -86,6 +117,10 @@ public class SlideshowController {
 
     public void stop() {
         started = false;
+        main.removeCallbacks(moveClock);
+        clockBox.animate().cancel();
+        clockBox.setTranslationX(0f);
+        clockBox.setTranslationY(0f);
         if (display != null) display.stop();
     }
 
