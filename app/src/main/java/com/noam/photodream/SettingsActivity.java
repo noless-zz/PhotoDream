@@ -70,6 +70,10 @@ public class SettingsActivity extends AppCompatActivity {
             prefs.setSourceEnabled("local", on);
             refreshFolderInfo();
         });
+        SwatchPicker localFrame = findViewById(R.id.sw_local_frame);
+        localFrame.setSelected(prefs.getFrameColor("local"));
+        localFrame.setOnPick(id -> prefs.setFrameColor("local", id));
+        setupSwitch(R.id.sw_strip, prefs.isSourceStrip(), prefs::setSourceStrip);
         findViewById(R.id.btn_remove_folder).setOnClickListener(v -> removeFolder());
 
         setupClouds();

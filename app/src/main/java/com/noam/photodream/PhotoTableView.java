@@ -28,7 +28,9 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -83,6 +85,7 @@ public class PhotoTableView extends FrameLayout implements PhotoDisplay {
     private int cardSizePercent = 50;
     private int maxRotation = 12;
     private boolean drift = true;
+    private Map<String, Integer> frameColors = new HashMap<>();   // source id -> frame color
     private long intervalMs = 10_000;
     private PhotoDisplay.Listener listener;
 
@@ -172,6 +175,8 @@ public class PhotoTableView extends FrameLayout implements PhotoDisplay {
     public void setCardSizePercent(int p) { cardSizePercent = clamp(p, 30, 80); }
     public void setMaxRotation(int deg) { maxRotation = clamp(deg, 0, 30); }
     public void setDrift(boolean on) { drift = on; }
+    /** Border color per source id; sources without an entry keep the classic white frame. */
+    public void setFrameColors(Map<String, Integer> colors) { frameColors = new HashMap<>(colors); }
 
     @Override
     public void setIntervalSeconds(int seconds) { intervalMs = Math.max(1, seconds) * 1000L; }
@@ -262,7 +267,7 @@ public class PhotoTableView extends FrameLayout implements PhotoDisplay {
         ImageView iv = new ImageView(getContext());
         iv.setLayoutParams(new LayoutParams(w, h, Gravity.TOP | Gravity.START));
         iv.setScaleType(ImageView.ScaleType.CENTER_CROP);   // trims a sliver so the border never distorts the photo
-        iv.setBackgroundColor(Color.WHITE);
+        iv.setBackgroundColor(frameColors.getOrDefault(photo.sourceId, Color.WHITE));
         iv.setPadding(pad, pad, pad, pad);
         iv.setCropToPadding(true);
         iv.setImageBitmap(bmp);

@@ -5,7 +5,12 @@ import android.os.Handler;
 import android.os.Looper;
 import android.view.View;
 
+import com.noam.photodream.cloud.CloudProvider;
+import com.noam.photodream.cloud.CloudProviders;
+
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -48,10 +53,12 @@ public class SlideshowController {
             table.setCardSizePercent(prefs.getTableCardSize());
             table.setMaxRotation(prefs.getTableRotation());
             table.setDrift(prefs.isTableDrift());
+            table.setFrameColors(frameColors(prefs));
             display = table;
         } else {
             slideshow.setTransition(prefs.getTransition());
             slideshow.setCrop(prefs.isCrop());
+            slideshow.setSourceStrip(prefs.isSourceStrip(), frameColors(prefs));
             display = slideshow;
         }
         display.setIntervalSeconds(prefs.getIntervalSeconds());
@@ -65,6 +72,16 @@ public class SlideshowController {
                 if (started && display == target) target.start(photos);
             });
         });
+    }
+
+    /** Frame color (ARGB) for every source id; sources not listed use classic white. */
+    private static Map<String, Integer> frameColors(Prefs prefs) {
+        Map<String, Integer> map = new HashMap<>();
+        map.put("local", FrameColors.argb(prefs.getFrameColor("local")));
+        for (CloudProvider p : CloudProviders.all()) {
+            map.put(p.id(), FrameColors.argb(prefs.getFrameColor(p.id())));
+        }
+        return map;
     }
 
     public void stop() {

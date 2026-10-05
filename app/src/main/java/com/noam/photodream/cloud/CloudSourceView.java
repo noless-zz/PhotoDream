@@ -18,6 +18,7 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.materialswitch.MaterialSwitch;
 import com.noam.photodream.Prefs;
 import com.noam.photodream.R;
+import com.noam.photodream.SwatchPicker;
 
 import java.util.List;
 
@@ -100,6 +101,10 @@ public class CloudSourceView extends LinearLayout {
             new Prefs(activity).setSourceEnabled(p.id(), on);
             host.onPhotosChanged();
         });
+
+        SwatchPicker frame = findViewById(R.id.cs_frame);
+        frame.setSelected(new Prefs(activity).getFrameColor(p.id()));
+        frame.setOnPick(id -> new Prefs(activity).setFrameColor(p.id(), id));
 
         MaterialSwitch subfolders = findViewById(R.id.cs_subfolders);
         subfolders.setChecked(prefs.isIncludeSubfolders());

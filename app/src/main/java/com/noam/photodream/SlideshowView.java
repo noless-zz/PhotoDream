@@ -6,6 +6,7 @@ import android.animation.ObjectAnimator;
 import android.animation.PropertyValuesHolder;
 import android.content.Context;
 import android.graphics.Bitmap;
+import android.graphics.Color;
 import android.net.Uri;
 import android.os.Handler;
 import android.os.Looper;
@@ -23,6 +24,8 @@ import android.widget.TextView;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
 import java.util.Random;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -64,6 +67,9 @@ public class SlideshowView extends FrameLayout implements PhotoDisplay {
     private boolean paused;
     private int failuresInARow;
     private Animator kenBurns;
+    private final View strip;                    // thin bar in the current photo's source color
+    private boolean showStrip;
+    private Map<String, Integer> frameColors = new HashMap<>();
 
     private long intervalMs = 10_000;
     private Transition transition = Transition.SLIDE;
@@ -83,6 +89,12 @@ public class SlideshowView extends FrameLayout implements PhotoDisplay {
             addView(iv);
             imageViews[i] = iv;
         }
+        strip = new View(context);
+        strip.setLayoutParams(new LayoutParams(LayoutParams.MATCH_PARENT,
+                Math.round(4 * getResources().getDisplayMetrics().density), Gravity.BOTTOM));
+        strip.setVisibility(GONE);
+        addView(strip);
+
         messageView = new TextView(context);
         LayoutParams lp = new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT, Gravity.CENTER);
         messageView.setLayoutParams(lp);
@@ -131,6 +143,13 @@ public class SlideshowView extends FrameLayout implements PhotoDisplay {
     private void applyScaleType() {
         ImageView.ScaleType type = crop ? ImageView.ScaleType.CENTER_CROP : ImageView.ScaleType.FIT_CENTER;
         for (ImageView iv : imageViews) iv.setScaleType(type);
+    }
+
+    /** Show a 4dp strip in the source's frame color along the bottom edge (off by default). */
+    public void setSourceStrip(boolean on, Map<String, Integer> colors) {
+        showStrip = on;
+        frameColors = new HashMap<>(colors);
+        if (!on) strip.setVisibility(GONE);
     }
 
     // ---------------------------------------------------------------- control
@@ -204,7 +223,7 @@ public class SlideshowView extends FrameLayout implements PhotoDisplay {
                     return;
                 }
                 failuresInARow = 0;
-                display(bmp, forward);
+                display(bmp, forward, photos.get(index));
                 scheduleNext();
             });
         });
@@ -214,14 +233,19 @@ public class SlideshowView extends FrameLayout implements PhotoDisplay {
         if (running && !paused) handler.postDelayed(advance, intervalMs);
     }
 
-    private void display(Bitmap bmp, boolean forward) {
+    private void display(Bitmap bmp, boolean forward, Photo photo) {
         cancelAnimations();
+        if (showStrip) {
+            strip.setBackgroundColor(frameColors.getOrDefault(photo.sourceId, Color.WHITE));
+            strip.setVisibility(VISIBLE);
+        }
         final ImageView current = imageViews[front];
         final ImageView incoming = imageViews[1 - front];
 
         resetView(incoming);
         incoming.setImageBitmap(bmp);
         incoming.bringToFront();
+        strip.bringToFront();
         messageView.bringToFront();
         float width = getWidth() > 0 ? getWidth() : targetLongSide();
 

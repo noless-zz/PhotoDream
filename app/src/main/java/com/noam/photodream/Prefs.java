@@ -44,6 +44,18 @@ public class Prefs {
     public boolean isSourceEnabled(String sourceId) { return sp.getBoolean("source_enabled_" + sourceId, true); }
     public void setSourceEnabled(String sourceId, boolean on) { sp.edit().putBoolean("source_enabled_" + sourceId, on).apply(); }
 
+    /** Frame color id (see {@link FrameColors}) for a source's cards; classic white by default. */
+    public String getFrameColor(String sourceId) {
+        return FrameColors.normalize(sp.getString("frame_color_" + sourceId, FrameColors.DEFAULT));
+    }
+    public void setFrameColor(String sourceId, String colorId) {
+        sp.edit().putString("frame_color_" + sourceId, FrameColors.normalize(colorId)).apply();
+    }
+
+    /** One-photo mode: show a thin strip in the source's color along the bottom edge. */
+    public boolean isSourceStrip() { return sp.getBoolean("source_strip", false); }
+    public void setSourceStrip(boolean on) { sp.edit().putBoolean("source_strip", on).apply(); }
+
     /** Seconds each photo stays on screen (5..60). */
     public int getIntervalSeconds() { return sp.getInt(KEY_INTERVAL, 10); }
     public void setIntervalSeconds(int s) { sp.edit().putInt(KEY_INTERVAL, s).apply(); }

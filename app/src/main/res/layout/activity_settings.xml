@@ -48,6 +48,16 @@
                 android:minHeight="48dp"
                 android:text="@string/source_show" />
 
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/frame_color" />
+
+            <com.noam.photodream.SwatchPicker
+                android:id="@+id/sw_local_frame"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
+
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btn_remove_folder"
                 style="@style/Widget.Material3.Button.TextButton"
@@ -61,6 +71,13 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:textStyle="bold" />
+
+        <com.google.android.material.materialswitch.MaterialSwitch
+            android:id="@+id/sw_strip"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:minHeight="48dp"
+            android:text="@string/source_strip" />
 
         <!-- ===== Cloud sources (same controls for each cloud) ===== -->
         <com.noam.photodream.cloud.CloudSourceView

@@ -24,6 +24,17 @@
         android:minHeight="48dp"
         android:text="@string/source_show" />
 
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/frame_color" />
+
+    <com.noam.photodream.SwatchPicker
+        android:id="@+id/cs_frame"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+
     <!-- shown only while connected -->
     <LinearLayout
         android:id="@+id/cs_group"
