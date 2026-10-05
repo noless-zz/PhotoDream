@@ -164,4 +164,9 @@
         <item quantity="two">%1$d תיקיות בטלפון</item>
         <item quantity="other">%1$d תיקיות בטלפון</item>
     </plurals>
+    <string name="about_report">שליחת דוח תקלה</string>
+    <string name="about_report_hint">יוצר קובץ טקסט עם פרטים טכניים (בלי תמונות ובלי נתוני התחברות) שאפשר לשלוח למורה.</string>
+    <string name="report_subject">דוח תקלה של PhotoDream</string>
+    <string name="report_preparing">מכין דוח…</string>
+    <string name="report_failed">לא ניתן היה ליצור את הדוח</string>
 </resources>

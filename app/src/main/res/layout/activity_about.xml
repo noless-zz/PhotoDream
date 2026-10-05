@@ -46,6 +46,19 @@
             android:text="@string/about_repo" />
 
         <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_report"
+            style="@style/Widget.Material3.Button.OutlinedButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/about_report" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:alpha="0.7"
+            android:text="@string/about_report_hint" />
+
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/btn_show_intro"
             style="@style/Widget.Material3.Button.TextButton"
             android:layout_width="wrap_content"

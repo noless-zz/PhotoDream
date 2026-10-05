@@ -158,4 +158,9 @@
         <item quantity="one">%1$d phone folder</item>
         <item quantity="other">%1$d phone folders</item>
     </plurals>
+    <string name="about_report">Send problem report</string>
+    <string name="about_report_hint">Creates a text file with technical details (no photos, no sign-in data) that you can send to your teacher.</string>
+    <string name="report_subject">PhotoDream problem report</string>
+    <string name="report_preparing">Preparing report…</string>
+    <string name="report_failed">Could not create the report</string>
 </resources>
