@@ -8,6 +8,7 @@ import android.view.View;
 import com.noam.photodream.cloud.CloudProvider;
 import com.noam.photodream.cloud.CloudProviders;
 
+import java.time.LocalTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -28,7 +29,14 @@ public class SlideshowController {
     private final View clockBox;
     private final ExecutorService io = Executors.newSingleThreadExecutor();
     private final Handler main = new Handler(Looper.getMainLooper());
+    private final View nightOverlay;
     private PhotoDisplay display;
+    private List<Photo> loadedPhotos;
+    private int normalIntervalSeconds;
+    private boolean nightEnabled;
+    private Prefs.NightStyle nightStyle = Prefs.NightStyle.DIM_WARM;
+    private boolean night;                          // true while the night look is applied
+    private final Runnable checkNight = this::applyNight;
     private boolean started;
     private BurnInWalk burnIn;
     private final Runnable moveClock = this::moveClock;
@@ -38,6 +46,7 @@ public class SlideshowController {
         this.slideshow = root.findViewById(R.id.slideshow);
         this.table = root.findViewById(R.id.photo_table);
         this.clockBox = root.findViewById(R.id.clock_box);
+        this.nightOverlay = root.findViewById(R.id.night_overlay);
         slideshow.setListener(listener);
         table.setListener(listener);
     }
@@ -63,18 +72,71 @@ public class SlideshowController {
             slideshow.setSourceStrip(prefs.isSourceStrip(), frameColors(prefs));
             display = slideshow;
         }
-        display.setIntervalSeconds(prefs.getIntervalSeconds());
+        normalIntervalSeconds = prefs.getIntervalSeconds();
+        display.setIntervalSeconds(normalIntervalSeconds);
+        nightEnabled = prefs.isNightEnabled();
+        nightStyle = prefs.getNightStyle();
+        nightFrom = LocalTime.of(prefs.getNightFromMinutes() / 60, prefs.getNightFromMinutes() % 60);
+        nightTo = LocalTime.of(prefs.getNightToMinutes() / 60, prefs.getNightToMinutes() % 60);
+        night = false;
         clockBox.setVisibility(prefs.isShowClock() ? View.VISIBLE : View.GONE);
 
         started = true;
         startBurnInProtection(prefs.isShowClock());
+        applyNight();                                  // night look from the first frame, before photos arrive
         final PhotoDisplay target = display;
         io.execute(() -> {
             List<Photo> photos = PhotoRepository.loadAll(context);
             main.post(() -> {
-                if (started && display == target) target.start(photos);
+                if (started && display == target) {
+                    loadedPhotos = photos;
+                    applyNight();                 // sets the night look and the interval, then starts when appropriate
+                    if (!(night && nightStyle == Prefs.NightStyle.CLOCK_ONLY)) target.start(photos);
+                }
             });
         });
+    }
+
+    // ---------------------------------------------------------------- night mode
+
+    private static final long MAX_NIGHT_CHECK_MS = 5 * 60_000L;   // re-check at least this often: the clock can be changed
+    private static final int DIM_WARM_OVERLAY = 0x73402000;       // ~45% dark amber: dims and warms the photos
+    private LocalTime nightFrom = LocalTime.of(22, 0), nightTo = LocalTime.of(6, 30);
+
+    /**
+     * Switches between the day and night look when the schedule says so, and sleeps until the next
+     * boundary (a Handler delay, capped at 5 min) instead of polling. "Dim & warm": a dark amber
+     * overlay and photos change half as often. "Clock only": black screen, photos stopped, dim clock.
+     */
+    private void applyNight() {
+        main.removeCallbacks(checkNight);
+        if (!started || !nightEnabled) return;
+        LocalTime now = LocalTime.now();
+        boolean shouldBeNight = NightSchedule.isNight(now, nightFrom, nightTo);
+
+        if (shouldBeNight != night) {
+            night = shouldBeNight;
+            boolean clockOnly = nightStyle == Prefs.NightStyle.CLOCK_ONLY;
+            if (night) {
+                nightOverlay.setBackgroundColor(clockOnly ? 0xFF000000 : DIM_WARM_OVERLAY);
+                nightOverlay.setVisibility(View.VISIBLE);
+                clockBox.setAlpha(clockOnly ? 0.45f : 0.75f);
+                if (clockOnly) {
+                    display.stop();
+                } else {
+                    display.setIntervalSeconds(normalIntervalSeconds * 2);
+                }
+            } else {
+                nightOverlay.setVisibility(View.GONE);
+                clockBox.setAlpha(1f);
+                display.setIntervalSeconds(normalIntervalSeconds);
+                if (clockOnly && loadedPhotos != null) display.start(loadedPhotos);   // photos come back
+            }
+        }
+
+        java.time.Duration until = NightSchedule.untilNextSwitch(now, nightFrom, nightTo);
+        long delay = until == null ? MAX_NIGHT_CHECK_MS : Math.min(MAX_NIGHT_CHECK_MS, until.toMillis() + 500);
+        main.postDelayed(checkNight, Math.max(1000, delay));
     }
 
     // ---------------------------------------------------------------- burn-in protection
@@ -118,6 +180,9 @@ public class SlideshowController {
     public void stop() {
         started = false;
         main.removeCallbacks(moveClock);
+        main.removeCallbacks(checkNight);
+        nightOverlay.setVisibility(View.GONE);
+        clockBox.setAlpha(1f);
         clockBox.animate().cancel();
         clockBox.setTranslationX(0f);
         clockBox.setTranslationY(0f);

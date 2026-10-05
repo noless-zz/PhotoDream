@@ -5,6 +5,10 @@ import android.view.View;
 import android.widget.RadioGroup;
 import android.widget.SeekBar;
 
+import com.google.android.material.button.MaterialButton;
+import com.google.android.material.timepicker.MaterialTimePicker;
+import com.google.android.material.timepicker.TimeFormat;
+
 /** Settings › Display: mode, slideshow, photo table, clock, dim. */
 public class DisplaySettingsActivity extends SettingsScreen {
 
@@ -35,6 +39,60 @@ public class DisplaySettingsActivity extends SettingsScreen {
         setupSwitch(R.id.sw_crop, prefs.isCrop(), prefs::setCrop);
         setupSwitch(R.id.sw_clock, prefs.isShowClock(), prefs::setShowClock);
         setupSwitch(R.id.sw_dim, prefs.isDim(), prefs::setDim);
+        setupNight();
+    }
+
+    // ---------------------------------------------------------------- night mode
+
+    private MaterialButton btnFrom, btnTo;
+
+    private void setupNight() {
+        View group = findViewById(R.id.group_night);
+        setupSwitch(R.id.sw_night, prefs.isNightEnabled(), on -> {
+            prefs.setNightEnabled(on);
+            group.setVisibility(on ? View.VISIBLE : View.GONE);
+        });
+        group.setVisibility(prefs.isNightEnabled() ? View.VISIBLE : View.GONE);
+
+        btnFrom = findViewById(R.id.btn_night_from);
+        btnTo = findViewById(R.id.btn_night_to);
+        showNightTimes();
+        btnFrom.setOnClickListener(v -> pickTime(prefs.getNightFromMinutes(), m -> {
+            prefs.setNightFromMinutes(m);
+            showNightTimes();
+        }));
+        btnTo.setOnClickListener(v -> pickTime(prefs.getNightToMinutes(), m -> {
+            prefs.setNightToMinutes(m);
+            showNightTimes();
+        }));
+
+        RadioGroup style = findViewById(R.id.group_night_style);
+        style.check(prefs.getNightStyle() == Prefs.NightStyle.CLOCK_ONLY ? R.id.radio_night_clock : R.id.radio_night_dim);
+        style.setOnCheckedChangeListener((g, id) -> prefs.setNightStyle(
+                id == R.id.radio_night_clock ? Prefs.NightStyle.CLOCK_ONLY : Prefs.NightStyle.DIM_WARM));
+    }
+
+    private void showNightTimes() {
+        btnFrom.setText(getString(R.string.night_from, timeText(prefs.getNightFromMinutes())));
+        btnTo.setText(getString(R.string.night_to, timeText(prefs.getNightToMinutes())));
+    }
+
+    /** "22:00" or "10:00 PM", following the phone's 12/24-hour setting. */
+    private String timeText(int minutes) {
+        java.util.Calendar cal = java.util.Calendar.getInstance();
+        cal.set(java.util.Calendar.HOUR_OF_DAY, minutes / 60);
+        cal.set(java.util.Calendar.MINUTE, minutes % 60);
+        return android.text.format.DateFormat.getTimeFormat(this).format(cal.getTime());
+    }
+
+    private void pickTime(int minutes, java.util.function.IntConsumer onPicked) {
+        MaterialTimePicker picker = new MaterialTimePicker.Builder()
+                .setTimeFormat(android.text.format.DateFormat.is24HourFormat(this) ? TimeFormat.CLOCK_24H : TimeFormat.CLOCK_12H)
+                .setHour(minutes / 60)
+                .setMinute(minutes % 60)
+                .build();
+        picker.addOnPositiveButtonClickListener(v -> onPicked.accept(picker.getHour() * 60 + picker.getMinute()));
+        picker.show(getSupportFragmentManager(), "night_time");
     }
 
     private void setupInterval() {

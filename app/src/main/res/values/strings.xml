@@ -225,4 +225,10 @@
     <string name="challenge_memory">Memory pairs</string>
     <string name="update_available">PhotoDream %1$s is available</string>
     <string name="update_download">Download</string>
+    <string name="section_night">Night mode</string>
+    <string name="night_enable">Dim the screen at night</string>
+    <string name="night_from">From %1$s</string>
+    <string name="night_to">To %1$s</string>
+    <string name="night_dim_warm">Dim and warm (photos change half as often)</string>
+    <string name="night_clock_only">Clock only (black screen)</string>
 </resources>

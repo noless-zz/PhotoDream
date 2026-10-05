@@ -18,6 +18,14 @@
         android:layout_height="match_parent"
         android:visibility="gone" />
 
+    <!-- night mode: dims and warms the photos (or hides them completely); not clickable, touches pass through -->
+    <View
+        android:id="@+id/night_overlay"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:importantForAccessibility="no"
+        android:visibility="gone" />
+
     <LinearLayout
         android:id="@+id/clock_box"
         android:layout_width="wrap_content"

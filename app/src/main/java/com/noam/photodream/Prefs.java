@@ -104,6 +104,29 @@ public class Prefs {
     public boolean isSourceStrip() { return sp.getBoolean("source_strip", false); }
     public void setSourceStrip(boolean on) { sp.edit().putBoolean("source_strip", on).apply(); }
 
+    // ---- night mode (Settings › Display)
+    public enum NightStyle { DIM_WARM, CLOCK_ONLY }
+
+    public boolean isNightEnabled() { return sp.getBoolean("night_enabled", false); }
+    public void setNightEnabled(boolean on) { sp.edit().putBoolean("night_enabled", on).apply(); }
+
+    /** Night starts at this minute of the day (default 22:00). */
+    public int getNightFromMinutes() { return sp.getInt("night_from", 22 * 60); }
+    public void setNightFromMinutes(int m) { sp.edit().putInt("night_from", m).apply(); }
+
+    /** Night ends at this minute of the day (default 06:30). */
+    public int getNightToMinutes() { return sp.getInt("night_to", 6 * 60 + 30); }
+    public void setNightToMinutes(int m) { sp.edit().putInt("night_to", m).apply(); }
+
+    public NightStyle getNightStyle() {
+        try {
+            return NightStyle.valueOf(sp.getString("night_style", NightStyle.DIM_WARM.name()));
+        } catch (IllegalArgumentException e) {
+            return NightStyle.DIM_WARM;
+        }
+    }
+    public void setNightStyle(NightStyle s) { sp.edit().putString("night_style", s.name()).apply(); }
+
     /** When we last asked GitHub for a newer release (epoch ms), and the newest tag it told us about. */
     public long getUpdateCheckedAt() { return sp.getLong("update_checked_at", 0); }
     public void setUpdateCheckedAt(long ms) { sp.edit().putLong("update_checked_at", ms).apply(); }

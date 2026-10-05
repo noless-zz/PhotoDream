@@ -236,5 +236,65 @@
                 android:text="@string/table_gestures" />
         </LinearLayout>
 
+        
+        <!-- ===== Night mode ===== -->
+        <TextView
+            style="@style/SectionTitle"
+            android:text="@string/section_night" />
+
+        <com.google.android.material.materialswitch.MaterialSwitch
+            android:id="@+id/sw_night"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:minHeight="48dp"
+            android:text="@string/night_enable" />
+
+        <LinearLayout
+            android:id="@+id/group_night"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btn_night_from"
+                    style="@style/Widget.Material3.Button.OutlinedButton"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="8dp"
+                    android:layout_weight="1" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btn_night_to"
+                    style="@style/Widget.Material3.Button.OutlinedButton"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1" />
             </LinearLayout>
+
+            <RadioGroup
+                android:id="@+id/group_night_style"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <RadioButton
+                    android:id="@+id/radio_night_dim"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:minHeight="48dp"
+                    android:text="@string/night_dim_warm" />
+
+                <RadioButton
+                    android:id="@+id/radio_night_clock"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:minHeight="48dp"
+                    android:text="@string/night_clock_only" />
+            </RadioGroup>
+        </LinearLayout>
+    </LinearLayout>
 </ScrollView>
