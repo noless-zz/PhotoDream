@@ -11,7 +11,6 @@
     <string name="source_phone">טלפון</string>
     <string name="remove_folder">הסרת התיקייה</string>
     <string name="counting">סופר תמונות…</string>
-    <string name="photo_count">נמצאו %1$d תמונות</string>
 
     <string name="section_slideshow">מצגת</string>
     <string name="interval_label">שניות לכל תמונה: %1$d</string>
@@ -45,7 +44,6 @@
     <string name="entry_pop">קופצות</string>
     <string name="entry_fade">מופיעות בעמעום</string>
     <string name="entry_random">שילוב אקראי</string>
-    <string name="max_cards_label">תמונות על השולחן: %1$d</string>
     <string name="card_size_label">גודל תמונה: %1$d%%</string>
     <string name="rotation_label">הטיה מרבית: %1$d°</string>
     <string name="drift">תנועה איטית מרחפת</string>
@@ -61,16 +59,13 @@
     <string name="cloud_cancelled">ההתחברות בוטלה</string>
     <string name="cloud_sign_in_again">פג תוקף ההתחברות – יש להתחבר מחדש</string>
     <string name="cloud_not_configured_title">צריך קודם שלב הגדרה אחד</string>
-    <string name="cloud_unsupported_skipped">(%1$d דולגו: פורמט לא נתמך)</string>
     <string name="cloud_choose_folder">בחירת תיקייה</string>
     <string name="cloud_no_folder">לא נבחרה תיקייה</string>
     <string name="cloud_subfolders">כולל תיקיות משנה</string>
-    <string name="cloud_max_photos">תמונות לשמירה בטלפון: %1$d</string>
     <string name="cloud_wifi_charging">סנכרון רק ב־Wi-Fi ובזמן טעינה</string>
     <string name="cloud_sync_now">סנכרון עכשיו</string>
     <string name="cloud_sync_started">מסנכרן ברקע…</string>
     <string name="cloud_syncing">מסנכרן…</string>
-    <string name="cloud_syncing_progress">מסנכרן… %1$d מתוך %2$d תמונות</string>
     <string name="cloud_waiting">ממתין לאינטרנט…</string>
     <string name="cloud_last_sync">סנכרון אחרון: %1$s</string>
     <string name="cloud_never_synced">עדיין לא סונכרן</string>
@@ -79,7 +74,6 @@
     <string name="cloud_root">הקבצים שלי</string>
     <string name="cloud_up">למעלה</string>
     <string name="cloud_use_folder">שימוש בתיקייה הזו</string>
-    <string name="cloud_images_here">%1$d תמונות ישירות בתיקייה הזו</string>
     <string name="cloud_error">הטעינה נכשלה: %1$s</string>
     <string name="cloud_channel">סנכרון תמונות</string>
     <string name="cloud_notification_title">מסנכרן תמונות מ־%1$s</string>
@@ -108,4 +102,36 @@
     <string name="welcome_step3_text">מניחים את הטלפון בטעינה ונותנים למסך לכבות. החלקה מחליפה תמונה, בשולחן התמונות אפשר לגרור אותן, ולחיצה ארוכה יוצאת – מסך הנעילה נשאר מוגן.</string>
     <string name="welcome_start">מתחילים</string>
     <string name="show_intro">הצגת ההסבר</string>
+
+    <!-- ספירות: צורות רבים בעברית -->
+    <plurals name="photo_count">
+        <item quantity="one">נמצאה תמונה אחת</item>
+        <item quantity="two">נמצאו %1$d תמונות</item>
+        <item quantity="other">נמצאו %1$d תמונות</item>
+    </plurals>
+    <plurals name="max_cards_label">
+        <item quantity="one">תמונה אחת על השולחן</item>
+        <item quantity="two">תמונות על השולחן: %1$d</item>
+        <item quantity="other">תמונות על השולחן: %1$d</item>
+    </plurals>
+    <plurals name="cloud_max_photos">
+        <item quantity="one">תמונה אחת לשמירה בטלפון</item>
+        <item quantity="two">תמונות לשמירה בטלפון: %1$d</item>
+        <item quantity="other">תמונות לשמירה בטלפון: %1$d</item>
+    </plurals>
+    <plurals name="cloud_images_here">
+        <item quantity="one">תמונה אחת ישירות בתיקייה הזו</item>
+        <item quantity="two">%1$d תמונות ישירות בתיקייה הזו</item>
+        <item quantity="other">%1$d תמונות ישירות בתיקייה הזו</item>
+    </plurals>
+    <plurals name="cloud_syncing_progress">
+        <item quantity="one">מסנכרן… %1$d מתוך תמונה אחת</item>
+        <item quantity="two">מסנכרן… %1$d מתוך %2$d תמונות</item>
+        <item quantity="other">מסנכרן… %1$d מתוך %2$d תמונות</item>
+    </plurals>
+    <plurals name="cloud_unsupported_skipped">
+        <item quantity="one">(תמונה אחת דולגה: פורמט לא נתמך)</item>
+        <item quantity="two">(%1$d דולגו: פורמט לא נתמך)</item>
+        <item quantity="other">(%1$d דולגו: פורמט לא נתמך)</item>
+    </plurals>
 </resources>

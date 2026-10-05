@@ -223,7 +223,7 @@ public class CloudSyncWorker extends Worker {
         if (failed > 0) s.append(", ").append(failed).append(" skipped");
         s.append(")");
         if (!unsupported.isEmpty()) {
-            s.append(" ").append(ctx.getString(R.string.cloud_unsupported_skipped, unsupported.size()));
+            s.append(" ").append(ctx.getResources().getQuantityString(R.plurals.cloud_unsupported_skipped, unsupported.size(), unsupported.size()));
         }
         if (isStopped()) s.append(" – paused, will continue");
         return s.toString();

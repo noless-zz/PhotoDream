@@ -77,7 +77,8 @@ public class SettingsActivity extends AppCompatActivity {
         setupInterval();
         setupTransition();
         setupEntry();
-        setupSeek(R.id.seek_max_cards, R.id.txt_max_cards, R.string.max_cards_label,
+        setupSeek(R.id.seek_max_cards, R.id.txt_max_cards,
+                n -> getResources().getQuantityString(R.plurals.max_cards_label, n, n),
                 3, 20, prefs.getTableMaxCards(), prefs::setTableMaxCards);
         setupSeek(R.id.seek_card_size, R.id.txt_card_size, R.string.card_size_label,
                 30, 80, prefs.getTableCardSize(), prefs::setTableCardSize);
@@ -207,7 +208,7 @@ public class SettingsActivity extends AppCompatActivity {
                 if (!prefs.isSourceEnabled(s.id())) perSource.append(" (").append(getString(R.string.source_hidden)).append(')');
             }
             int n = PhotoRepository.loadAll(this).size();
-            runOnUiThread(() -> txtCount.setText(getString(R.string.photo_count, n)
+            runOnUiThread(() -> txtCount.setText(getResources().getQuantityString(R.plurals.photo_count, n, n)
                     + (perSource.length() > 0 ? "\n" + perSource : "")));
         });
     }
@@ -305,16 +306,22 @@ public class SettingsActivity extends AppCompatActivity {
     /** A SeekBar from min..max with a "label: N" text above it. */
     private void setupSeek(int seekId, int labelId, int formatRes, int min, int max,
                            int value, IntSetter setter) {
+        setupSeek(seekId, labelId, n -> getString(formatRes, n), min, max, value, setter);
+    }
+
+    /** Same, but the label text comes from a function (needed for plurals). */
+    private void setupSeek(int seekId, int labelId, java.util.function.IntFunction<String> format,
+                           int min, int max, int value, IntSetter setter) {
         SeekBar seek = findViewById(seekId);
         TextView label = findViewById(labelId);
         seek.setMax(max - min);
         int v = Math.max(min, Math.min(max, value));
         seek.setProgress(v - min);
-        label.setText(getString(formatRes, v));
+        label.setText(format.apply(v));
         seek.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override public void onProgressChanged(SeekBar s, int progress, boolean fromUser) {
                 int n = progress + min;
-                label.setText(getString(formatRes, n));
+                label.setText(format.apply(n));
                 setter.set(n);
             }
             @Override public void onStartTrackingTouch(SeekBar s) { }

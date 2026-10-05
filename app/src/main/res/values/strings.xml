@@ -10,7 +10,6 @@
     <string name="source_phone">Phone</string>
     <string name="remove_folder">Remove folder</string>
     <string name="counting">Counting photos…</string>
-    <string name="photo_count">%1$d photos found</string>
 
     <string name="section_slideshow">Slideshow</string>
     <string name="interval_label">Seconds per photo: %1$d</string>
@@ -44,7 +43,6 @@
     <string name="entry_pop">Pop up</string>
     <string name="entry_fade">Fade in</string>
     <string name="entry_random">Random mix</string>
-    <string name="max_cards_label">Photos on table: %1$d</string>
     <string name="card_size_label">Photo size: %1$d%%</string>
     <string name="rotation_label">Max tilt: %1$d°</string>
     <string name="drift">Slow floating movement</string>
@@ -60,16 +58,13 @@
     <string name="cloud_cancelled">Sign-in was cancelled</string>
     <string name="cloud_sign_in_again">Sign-in expired – please connect again</string>
     <string name="cloud_not_configured_title">One setup step first</string>
-    <string name="cloud_unsupported_skipped">(%1$d skipped: unsupported format)</string>
     <string name="cloud_choose_folder">Choose folder</string>
     <string name="cloud_no_folder">No folder chosen</string>
     <string name="cloud_subfolders">Include subfolders</string>
-    <string name="cloud_max_photos">Photos to keep on phone: %1$d</string>
     <string name="cloud_wifi_charging">Sync only on Wi-Fi while charging</string>
     <string name="cloud_sync_now">Sync now</string>
     <string name="cloud_sync_started">Syncing in the background…</string>
     <string name="cloud_syncing">Syncing…</string>
-    <string name="cloud_syncing_progress">Syncing… %1$d of %2$d photos</string>
     <string name="cloud_waiting">Waiting for internet…</string>
     <string name="cloud_last_sync">Last sync: %1$s</string>
     <string name="cloud_never_synced">Not synced yet</string>
@@ -78,7 +73,6 @@
     <string name="cloud_root">My files</string>
     <string name="cloud_up">Up</string>
     <string name="cloud_use_folder">Use this folder</string>
-    <string name="cloud_images_here">%1$d photos directly in this folder</string>
     <string name="cloud_error">Could not load: %1$s</string>
     <string name="cloud_channel">Photo sync</string>
     <string name="cloud_notification_title">Syncing %1$s photos</string>
@@ -109,4 +103,30 @@
     <string name="welcome_step3_text">Put the phone on the charger and let the screen time out. Swipe to change photos, drag them on the photo table, long-press to leave – the lock screen stays protected.</string>
     <string name="welcome_start">Let\'s start</string>
     <string name="show_intro">Show introduction</string>
+
+    <!-- Counts: plurals so "1 photo" and "2 photos" read correctly -->
+    <plurals name="photo_count">
+        <item quantity="one">%1$d photo found</item>
+        <item quantity="other">%1$d photos found</item>
+    </plurals>
+    <plurals name="max_cards_label">
+        <item quantity="one">Photos on table: %1$d</item>
+        <item quantity="other">Photos on table: %1$d</item>
+    </plurals>
+    <plurals name="cloud_max_photos">
+        <item quantity="one">Photos to keep on phone: %1$d</item>
+        <item quantity="other">Photos to keep on phone: %1$d</item>
+    </plurals>
+    <plurals name="cloud_images_here">
+        <item quantity="one">%1$d photo directly in this folder</item>
+        <item quantity="other">%1$d photos directly in this folder</item>
+    </plurals>
+    <plurals name="cloud_syncing_progress">
+        <item quantity="one">Syncing… %1$d of %2$d photo</item>
+        <item quantity="other">Syncing… %1$d of %2$d photos</item>
+    </plurals>
+    <plurals name="cloud_unsupported_skipped">
+        <item quantity="one">(%1$d skipped: unsupported format)</item>
+        <item quantity="other">(%1$d skipped: unsupported format)</item>
+    </plurals>
 </resources>

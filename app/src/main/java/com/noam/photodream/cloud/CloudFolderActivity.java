@@ -143,7 +143,7 @@ public class CloudFolderActivity extends AppCompatActivity {
                     for (CloudItem d : dirs) {
                         adapter.add("📁  " + d.name + (d.childCount >= 0 ? "   (" + d.childCount + ")" : ""));
                     }
-                    txtImagesHere.setText(getString(R.string.cloud_images_here, imageCount));
+                    txtImagesHere.setText(getResources().getQuantityString(R.plurals.cloud_images_here, imageCount, imageCount));
                 });
             } catch (IOException e) {
                 runOnUiThread(() -> {
