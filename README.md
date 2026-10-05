@@ -45,6 +45,15 @@ Builds are signed with the release key in `../PhotoDream-signing/` (outside git;
 see the README there). Without that folder, Gradle falls back to the debug key –
 then Google sign-in fails, because Google knows only the release key's SHA-1.
 
+## Releasing a new version
+1. Commit and push to `main`.
+2. GitHub → **Releases → Draft a new release** → new tag like `v0.3` → **Publish**.
+3. The *Release APK* workflow builds, signs and attaches `PhotoDream.apk` (~5 min).
+
+Students always download the newest version from
+<https://github.com/noless-zz/PhotoDream/releases/latest/download/PhotoDream.apk>
+and install it over the old one (same signing key, so settings are kept).
+
 ## Roadmap
 - [x] Screensaver + preview, slide / fade / Ken Burns, local folder
 - [x] Photo table mode (drop / fly in / pop / fade / random, drag & flick, slow drift)

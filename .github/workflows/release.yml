@@ -1,0 +1,77 @@
+# Builds a signed PhotoDream APK whenever a GitHub Release is published,
+# and attaches it to that release.
+#
+# Students always get the newest version from this stable link:
+#   https://github.com/noless-zz/PhotoDream/releases/latest/download/PhotoDream.apk
+#
+# Needs two repository secrets (Settings › Secrets and variables › Actions):
+#   SIGNING_KEYSTORE_BASE64  – photodream-release.jks, base64-encoded
+#   SIGNING_PASSWORD         – its store/key password
+# (Copies of both live in ../PhotoDream-signing on the developer PC.)
+
+name: Release APK
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:        # manual test run: builds and keeps the APK as a workflow artifact
+
+permissions:
+  contents: write           # needed to upload the APK to the release
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - uses: gradle/actions/setup-gradle@v4
+
+      - name: Restore signing key (outside the repo, where build.gradle looks)
+        env:
+          KEYSTORE_B64: ${{ secrets.SIGNING_KEYSTORE_BASE64 }}
+          PASSWORD: ${{ secrets.SIGNING_PASSWORD }}
+        run: |
+          if [ -z "$KEYSTORE_B64" ]; then echo "::error::SIGNING_KEYSTORE_BASE64 secret is missing"; exit 1; fi
+          mkdir -p ../PhotoDream-signing
+          echo "$KEYSTORE_B64" | base64 -d > ../PhotoDream-signing/photodream-release.jks
+          printf 'storeFile=photodream-release.jks\nstorePassword=%s\nkeyAlias=photodream\nkeyPassword=%s\n' \
+            "$PASSWORD" "$PASSWORD" > ../PhotoDream-signing/keystore.properties
+
+      - name: Version from the release tag (v0.3 → 0.3)
+        run: |
+          TAG="${GITHUB_REF_NAME}"
+          NAME="${TAG#v}"
+          if [ "${{ github.event_name }}" != "release" ]; then NAME="dev-${GITHUB_RUN_NUMBER}"; fi
+          echo "VERSION_NAME=$NAME" >> "$GITHUB_ENV"
+          # must grow with every build so phones accept the update
+          echo "VERSION_CODE=$((100 + GITHUB_RUN_NUMBER))" >> "$GITHUB_ENV"
+
+      - name: Build signed release APK
+        run: ./gradlew --no-daemon assembleRelease testDebugUnitTest
+          -PversionName="$VERSION_NAME" -PversionCode="$VERSION_CODE"
+
+      - name: Check the signature
+        run: |
+          APKSIGNER=$(ls "$ANDROID_HOME"/build-tools/*/apksigner | sort -V | tail -1)
+          "$APKSIGNER" verify --print-certs app/build/outputs/apk/release/app-release.apk | grep "SHA-1"
+          cp app/build/outputs/apk/release/app-release.apk "PhotoDream-${VERSION_NAME}.apk"
+          cp app/build/outputs/apk/release/app-release.apk PhotoDream.apk
+
+      - name: Attach to the release
+        if: github.event_name == 'release'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release upload "$GITHUB_REF_NAME" "PhotoDream-${VERSION_NAME}.apk" PhotoDream.apk --clobber
+
+      - name: Keep as workflow artifact (manual runs)
+        if: github.event_name != 'release'
+        uses: actions/upload-artifact@v4
+        with:
+          name: PhotoDream-${{ env.VERSION_NAME }}
+          path: PhotoDream.apk
