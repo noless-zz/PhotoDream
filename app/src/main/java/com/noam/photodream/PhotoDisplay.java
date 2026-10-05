@@ -1,7 +1,5 @@
 package com.noam.photodream;
 
-import android.net.Uri;
-
 import java.util.List;
 
 /**
@@ -18,7 +16,7 @@ public interface PhotoDisplay {
     }
 
     /** Start (or restart) with a list of photos. Main thread only. */
-    void start(List<Uri> photos);
+    void start(List<Photo> photos);
 
     /** Stop timers and animations. Safe to call more than once. */
     void stop();

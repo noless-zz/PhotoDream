@@ -7,6 +7,8 @@ import android.net.Uri;
 import android.provider.DocumentsContract;
 import android.util.Log;
 
+import com.noam.photodream.Photo;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -27,13 +29,18 @@ public class LocalFolderSource implements PhotoSource {
     }
 
     @Override
+    public String id() {
+        return "local";
+    }
+
+    @Override
     public String getName() {
         return "Phone folder";
     }
 
     @Override
-    public List<Uri> listPhotos(Context context) {
-        List<Uri> out = new ArrayList<>();
+    public List<Photo> listPhotos(Context context) {
+        List<Photo> out = new ArrayList<>();
         try {
             String rootId = DocumentsContract.getTreeDocumentId(treeUri);
             walk(context.getContentResolver(), rootId, 0, out);
@@ -44,7 +51,7 @@ public class LocalFolderSource implements PhotoSource {
         return out;
     }
 
-    private void walk(ContentResolver cr, String parentId, int depth, List<Uri> out) {
+    private void walk(ContentResolver cr, String parentId, int depth, List<Photo> out) {
         Uri children = DocumentsContract.buildChildDocumentsUriUsingTree(treeUri, parentId);
         String[] columns = {
                 DocumentsContract.Document.COLUMN_DOCUMENT_ID,
@@ -58,7 +65,7 @@ public class LocalFolderSource implements PhotoSource {
                 if (DocumentsContract.Document.MIME_TYPE_DIR.equals(mime)) {
                     if (depth < MAX_DEPTH) walk(cr, id, depth + 1, out);
                 } else if (mime != null && mime.startsWith("image/")) {
-                    out.add(DocumentsContract.buildDocumentUriUsingTree(treeUri, id));
+                    out.add(new Photo(DocumentsContract.buildDocumentUriUsingTree(treeUri, id), id(), id));
                 }
             }
         }

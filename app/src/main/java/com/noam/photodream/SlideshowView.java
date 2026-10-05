@@ -56,7 +56,7 @@ public class SlideshowView extends FrameLayout implements PhotoDisplay {
     private final Random random = new Random();
     private final GestureDetector gestures;
 
-    private List<Uri> photos = new ArrayList<>();
+    private List<Photo> photos = new ArrayList<>();
     private int index = -1;
     private int requestId = 0;                   // ignores decodes that finished too late
     private boolean running;
@@ -131,7 +131,7 @@ public class SlideshowView extends FrameLayout implements PhotoDisplay {
 
     /** Start (or restart) with a new list of photos. Call on the main thread. */
     @Override
-    public void start(List<Uri> newPhotos) {
+    public void start(List<Photo> newPhotos) {
         photos = new ArrayList<>(newPhotos);
         index = -1;
         running = true;
@@ -183,7 +183,7 @@ public class SlideshowView extends FrameLayout implements PhotoDisplay {
         if (!running || photos.isEmpty()) return;
         handler.removeCallbacks(advance);
         index = Math.floorMod(index + delta, photos.size());
-        final Uri uri = photos.get(index);
+        final Uri uri = photos.get(index).uri;
         final int id = ++requestId;
         final int target = targetLongSide();
         final boolean forward = delta >= 0;

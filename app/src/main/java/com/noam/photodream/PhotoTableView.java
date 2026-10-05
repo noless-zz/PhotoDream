@@ -86,7 +86,7 @@ public class PhotoTableView extends FrameLayout implements PhotoDisplay {
     private final TextView messageView;
     private final float density;
 
-    private List<Uri> photos = new ArrayList<>();
+    private List<Photo> photos = new ArrayList<>();
     private int index = -1;
     private int requestId;
     private int failuresInARow;
@@ -147,7 +147,7 @@ public class PhotoTableView extends FrameLayout implements PhotoDisplay {
     // ---------------------------------------------------------------- PhotoDisplay
 
     @Override
-    public void start(List<Uri> newPhotos) {
+    public void start(List<Photo> newPhotos) {
         stop();
         removeAllCards();
         photos = new ArrayList<>(newPhotos);
@@ -185,7 +185,7 @@ public class PhotoTableView extends FrameLayout implements PhotoDisplay {
         if (!running || photos.isEmpty()) return;
         handler.removeCallbacks(advance);
         index = (index + 1) % photos.size();
-        final Uri uri = photos.get(index);
+        final Uri uri = photos.get(index).uri;
         final int id = ++requestId;
         final int longSide = cardLongSide();
 

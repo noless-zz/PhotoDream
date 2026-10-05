@@ -1,7 +1,6 @@
 package com.noam.photodream;
 
 import android.content.Context;
-import android.net.Uri;
 import android.os.Handler;
 import android.os.Looper;
 import android.view.View;
@@ -61,7 +60,7 @@ public class SlideshowController {
         started = true;
         final PhotoDisplay target = display;
         io.execute(() -> {
-            List<Uri> photos = PhotoRepository.loadAll(context);
+            List<Photo> photos = PhotoRepository.loadAll(context);
             main.post(() -> {
                 if (started && display == target) target.start(photos);
             });
