@@ -98,12 +98,14 @@
             android:layout_height="wrap_content">
 
             <RadioButton
+            android:minHeight="48dp"
                 android:id="@+id/radio_mode_single"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/mode_single" />
 
             <RadioButton
+            android:minHeight="48dp"
                 android:id="@+id/radio_mode_table"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -121,6 +123,7 @@
             android:layout_height="wrap_content" />
 
         <SeekBar
+            android:minHeight="48dp"
             android:id="@+id/seek_interval"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -145,18 +148,21 @@
                 android:layout_height="wrap_content">
 
                 <RadioButton
+            android:minHeight="48dp"
                     android:id="@+id/radio_slide"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/transition_slide" />
 
                 <RadioButton
+            android:minHeight="48dp"
                     android:id="@+id/radio_fade"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/transition_fade" />
 
                 <RadioButton
+            android:minHeight="48dp"
                     android:id="@+id/radio_ken_burns"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
@@ -164,6 +170,7 @@
             </RadioGroup>
 
             <com.google.android.material.materialswitch.MaterialSwitch
+            android:minHeight="48dp"
                 android:id="@+id/sw_crop"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -171,18 +178,21 @@
         </LinearLayout>
 
         <com.google.android.material.materialswitch.MaterialSwitch
+            android:minHeight="48dp"
             android:id="@+id/sw_shuffle"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="@string/shuffle" />
 
         <com.google.android.material.materialswitch.MaterialSwitch
+            android:minHeight="48dp"
             android:id="@+id/sw_clock"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="@string/show_clock" />
 
         <com.google.android.material.materialswitch.MaterialSwitch
+            android:minHeight="48dp"
             android:id="@+id/sw_dim"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -210,30 +220,35 @@
                 android:layout_height="wrap_content">
 
                 <RadioButton
+            android:minHeight="48dp"
                     android:id="@+id/radio_entry_drop"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/entry_drop" />
 
                 <RadioButton
+            android:minHeight="48dp"
                     android:id="@+id/radio_entry_fly"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/entry_fly_in" />
 
                 <RadioButton
+            android:minHeight="48dp"
                     android:id="@+id/radio_entry_pop"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/entry_pop" />
 
                 <RadioButton
+            android:minHeight="48dp"
                     android:id="@+id/radio_entry_fade"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/entry_fade" />
 
                 <RadioButton
+            android:minHeight="48dp"
                     android:id="@+id/radio_entry_random"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
@@ -247,6 +262,7 @@
                 android:layout_marginTop="12dp" />
 
             <SeekBar
+            android:minHeight="48dp"
                 android:id="@+id/seek_max_cards"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content" />
@@ -258,6 +274,7 @@
                 android:layout_marginTop="12dp" />
 
             <SeekBar
+            android:minHeight="48dp"
                 android:id="@+id/seek_card_size"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content" />
@@ -269,11 +286,13 @@
                 android:layout_marginTop="12dp" />
 
             <SeekBar
+            android:minHeight="48dp"
                 android:id="@+id/seek_rotation"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content" />
 
             <com.google.android.material.materialswitch.MaterialSwitch
+            android:minHeight="48dp"
                 android:id="@+id/sw_drift"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"

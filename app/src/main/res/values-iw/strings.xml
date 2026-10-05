@@ -6,6 +6,7 @@
     <string name="section_photos">תמונות</string>
     <string name="choose_folder">בחירת תיקיית תמונות</string>
     <string name="no_folder">עדיין לא נבחרה תיקייה</string>
+    <string name="count_with_sources">%1$s\n%2$s</string>
     <string name="source_show">הצג במצגת</string>
     <string name="source_hidden">מוסתר</string>
     <string name="source_phone">טלפון</string>

@@ -1,6 +1,7 @@
 package com.noam.photodream;
 
 import android.animation.Animator;
+import android.annotation.SuppressLint;
 import android.animation.ObjectAnimator;
 import android.animation.PropertyValuesHolder;
 import android.content.Context;
@@ -96,7 +97,7 @@ public class SlideshowView extends FrameLayout implements PhotoDisplay {
             @Override public boolean onDown(MotionEvent e) { return true; }
 
             @Override public boolean onSingleTapConfirmed(MotionEvent e) {
-                togglePause();
+                performClick();      // also what TalkBack's "double-tap to activate" does
                 return true;
             }
 
@@ -287,8 +288,18 @@ public class SlideshowView extends FrameLayout implements PhotoDisplay {
         return Math.max(dm.widthPixels, dm.heightPixels);
     }
 
+    // performClick() is called by the gesture detector once a single tap is confirmed
+    // (not a double tap), so lint can't see it in this method.
+    @SuppressLint("ClickableViewAccessibility")
     @Override
     public boolean onTouchEvent(MotionEvent event) {
         return gestures.onTouchEvent(event) || super.onTouchEvent(event);
+    }
+
+    /** A tap (or an accessibility click) pauses / resumes the slideshow. */
+    @Override
+    public boolean performClick() {
+        togglePause();
+        return super.performClick();
     }
 }

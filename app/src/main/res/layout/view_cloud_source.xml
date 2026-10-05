@@ -44,6 +44,7 @@
             android:layout_height="wrap_content" />
 
         <com.google.android.material.materialswitch.MaterialSwitch
+            android:minHeight="48dp"
             android:id="@+id/cs_subfolders"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -56,12 +57,14 @@
             android:layout_marginTop="8dp" />
 
         <SeekBar
+            android:minHeight="48dp"
             android:id="@+id/cs_max"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:max="19" />
 
         <com.google.android.material.materialswitch.MaterialSwitch
+            android:minHeight="48dp"
             android:id="@+id/cs_wifi"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

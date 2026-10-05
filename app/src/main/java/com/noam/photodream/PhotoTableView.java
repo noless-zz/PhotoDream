@@ -123,10 +123,6 @@ public class PhotoTableView extends FrameLayout implements PhotoDisplay {
                 if (dragged == null && listener != null) listener.onExitRequested();
             }
 
-            @Override public boolean onSingleTapUp(MotionEvent e) {
-                performClick();
-                return true;
-            }
         });
     }
 
@@ -397,6 +393,7 @@ public class PhotoTableView extends FrameLayout implements PhotoDisplay {
                 return true;
 
             case MotionEvent.ACTION_UP:
+                if (dragged == null) performClick();   // tap on the empty table: lets accessibility services see it
                 if (dragged != null) {
                     velocity.addMovement(e);
                     velocity.computeCurrentVelocity(1000);

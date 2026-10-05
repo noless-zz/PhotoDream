@@ -208,8 +208,10 @@ public class SettingsActivity extends AppCompatActivity {
                 if (!prefs.isSourceEnabled(s.id())) perSource.append(" (").append(getString(R.string.source_hidden)).append(')');
             }
             int n = PhotoRepository.loadAll(this).size();
-            runOnUiThread(() -> txtCount.setText(getResources().getQuantityString(R.plurals.photo_count, n, n)
-                    + (perSource.length() > 0 ? "\n" + perSource : "")));
+            String found = getResources().getQuantityString(R.plurals.photo_count, n, n);
+            runOnUiThread(() -> txtCount.setText(perSource.length() > 0
+                    ? getString(R.string.count_with_sources, found, perSource.toString())
+                    : found));
         });
     }
 
@@ -239,10 +241,12 @@ public class SettingsActivity extends AppCompatActivity {
         SeekBar seek = findViewById(R.id.seek_interval);
         seek.setProgress(prefs.getIntervalSeconds() - MIN_INTERVAL);
         txtInterval.setText(getString(R.string.interval_label, prefs.getIntervalSeconds()));
+        seek.setContentDescription(txtInterval.getText());
         seek.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override public void onProgressChanged(SeekBar s, int progress, boolean fromUser) {
                 int sec = progress + MIN_INTERVAL;
                 txtInterval.setText(getString(R.string.interval_label, sec));
+                s.setContentDescription(txtInterval.getText());
                 prefs.setIntervalSeconds(sec);
             }
             @Override public void onStartTrackingTouch(SeekBar s) { }
@@ -318,10 +322,12 @@ public class SettingsActivity extends AppCompatActivity {
         int v = Math.max(min, Math.min(max, value));
         seek.setProgress(v - min);
         label.setText(format.apply(v));
+        seek.setContentDescription(label.getText());   // TalkBack reads the label with the slider
         seek.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override public void onProgressChanged(SeekBar s, int progress, boolean fromUser) {
                 int n = progress + min;
                 label.setText(format.apply(n));
+                s.setContentDescription(label.getText());
                 setter.set(n);
             }
             @Override public void onStartTrackingTouch(SeekBar s) { }

@@ -1,9 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Shared by the screensaver and the preview: slideshow + clock on top -->
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:ignore="MergeRootFrame"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:background="@color/black">
+    android:layout_height="match_parent">
+    <!-- no background here: the theme already paints the window black -->
 
     <com.noam.photodream.SlideshowView
         android:id="@+id/slideshow"

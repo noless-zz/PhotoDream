@@ -116,10 +116,12 @@ public class CloudSourceView extends LinearLayout {
         SeekBar max = findViewById(R.id.cs_max);
         max.setProgress(Math.max(0, Math.min(19, prefs.getMaxPhotos() / STEP - 1)));
         maxLabel.setText(activity.getResources().getQuantityString(R.plurals.cloud_max_photos, prefs.getMaxPhotos(), prefs.getMaxPhotos()));
+        max.setContentDescription(maxLabel.getText());   // TalkBack reads the label with the slider
         max.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override public void onProgressChanged(SeekBar s, int progress, boolean fromUser) {
                 int n = (progress + 1) * STEP;
                 maxLabel.setText(activity.getResources().getQuantityString(R.plurals.cloud_max_photos, n, n));
+                s.setContentDescription(maxLabel.getText());
                 prefs.setMaxPhotos(n);
             }
             @Override public void onStartTrackingTouch(SeekBar s) { }
