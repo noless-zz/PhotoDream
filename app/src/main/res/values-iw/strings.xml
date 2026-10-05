@@ -225,4 +225,6 @@
     <string name="alarm_fix_notifications">פתיחת הגדרות התראות</string>
     <string name="alarm_warn_battery">חיסכון בסוללה עלול לעצור את PhotoDream לפני שהשעון מצלצל.</string>
     <string name="alarm_fix_battery">פתיחת הגדרות סוללה</string>
+    <string name="challenge_flip">הופכים את כולן</string>
+    <string name="flip_card">כרטיס תמונה %1$d</string>
 </resources>

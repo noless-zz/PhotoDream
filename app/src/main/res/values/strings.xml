@@ -218,4 +218,6 @@
     <string name="alarm_fix_notifications">Open notification settings</string>
     <string name="alarm_warn_battery">Battery saving may stop PhotoDream before the alarm rings.</string>
     <string name="alarm_fix_battery">Open battery settings</string>
+    <string name="challenge_flip">Flip them all</string>
+    <string name="flip_card">Photo card %1$d</string>
 </resources>

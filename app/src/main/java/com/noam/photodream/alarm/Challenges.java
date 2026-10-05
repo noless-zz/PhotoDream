@@ -1,6 +1,7 @@
 package com.noam.photodream.alarm;
 
 import com.noam.photodream.R;
+import com.noam.photodream.alarm.challenge.FlipChallenge;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -32,8 +33,8 @@ public final class Challenges {
     private static final List<Info> ALL = new ArrayList<>();
 
     static {
-        // real challenges register themselves here, e.g.:
-        // register("flip", R.string.challenge_flip, 3, FlipChallenge::new);
+        // a challenge is one line: id, name, the fewest photos it needs, factory
+        register("flip", R.string.challenge_flip, 1, FlipChallenge::new);
     }
 
     private Challenges() { }
