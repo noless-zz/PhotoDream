@@ -29,7 +29,13 @@ public class AlarmReceiver extends BroadcastReceiver {
             long id = intent.getLongExtra(AlarmScheduler.EXTRA_ALARM_ID, 0);
             boolean snooze = intent.getBooleanExtra(AlarmScheduler.EXTRA_SNOOZE, false);
             Log.i(TAG, "Alarm " + id + " rang" + (snooze ? " (snooze)" : ""));
-            showRingingNotification(context, id);     // placeholder until the ringing screen (issue #15)
+            try {
+                AlarmService.start(context, id, snooze);
+            } catch (RuntimeException e) {
+                // Android refused to start the foreground service: at least show a notification
+                Log.w(TAG, "Could not start the alarm service", e);
+                showRingingNotification(context, id);
+            }
             AlarmScheduler.onRang(context, id, snooze);
         } else {
             // BOOT_COMPLETED, TIME_SET, TIMEZONE_CHANGED, MY_PACKAGE_REPLACED
@@ -38,6 +44,7 @@ public class AlarmReceiver extends BroadcastReceiver {
         }
     }
 
+    /** Fallback only: the normal path is {@link AlarmService}. */
     private void showRingingNotification(Context context, long alarmId) {
         NotificationManager nm = context.getSystemService(NotificationManager.class);
         if (nm.getNotificationChannel(CHANNEL) == null) {
@@ -47,7 +54,12 @@ public class AlarmReceiver extends BroadcastReceiver {
         }
         Alarm alarm = new AlarmStore(context).get(alarmId);
         String text = alarm != null && !alarm.label.isEmpty() ? alarm.label : context.getString(R.string.alarm_ringing);
+        android.app.PendingIntent open = android.app.PendingIntent.getActivity(context, 0,
+                AlarmActivity.intent(context, alarmId),
+                android.app.PendingIntent.FLAG_IMMUTABLE | android.app.PendingIntent.FLAG_UPDATE_CURRENT);
         Notification n = new Notification.Builder(context, CHANNEL)
+                .setContentIntent(open)
+                .setFullScreenIntent(open, true)
                 .setSmallIcon(android.R.drawable.ic_lock_idle_alarm)
                 .setContentTitle(context.getString(R.string.alarm_ringing))
                 .setContentText(text)

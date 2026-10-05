@@ -165,4 +165,16 @@
     <string name="report_failed">Could not create the report</string>
     <string name="alarm_channel">Alarms</string>
     <string name="alarm_ringing">Wake-up alarm</string>
+    <string name="alarm_tap_to_open">Tap to open</string>
+    <string name="alarm_hold_to_stop">Hold to stop</string>
+    <string name="alarm_progress">%1$d / %2$d</string>
+    <string name="alarm_snooze">Snooze %1$d min (left: %2$d)</string>
+    <string name="alarm_cant_solve">Can\'t solve it?</string>
+    <string name="alarm_type_code">Type this code to stop the alarm:</string>
+    <string name="alarm_code_hint">Code</string>
+    <string name="alarm_code_wrong">Wrong code</string>
+    <string name="alarm_good_morning">Good morning!</string>
+    <string name="alarm_missed_channel">Missed alarms</string>
+    <string name="alarm_missed">Missed alarm</string>
+    <string name="alarm_missed_text">The %1$s alarm rang for 15 minutes and stopped by itself.</string>
 </resources>

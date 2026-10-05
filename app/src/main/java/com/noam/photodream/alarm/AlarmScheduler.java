@@ -34,6 +34,12 @@ public final class AlarmScheduler {
         return context.getSystemService(AlarmManager.class).canScheduleExactAlarms();
     }
 
+    /** False on Android 14+ when "full-screen notifications" are off: the alarm then only shows a heads-up. */
+    public static boolean canUseFullScreenIntent(Context context) {
+        if (Build.VERSION.SDK_INT < 34) return true;
+        return context.getSystemService(android.app.NotificationManager.class).canUseFullScreenIntent();
+    }
+
     /** Re-arm (or cancel) the single system alarm from what is in the store. Safe to call any time. */
     public static void rescheduleAll(Context context) {
         Context app = context.getApplicationContext();

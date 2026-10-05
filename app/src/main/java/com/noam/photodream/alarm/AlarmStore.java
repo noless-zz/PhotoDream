@@ -135,6 +135,15 @@ public class AlarmStore {
         notifyChanged();
     }
 
+    // ---------------------------------------------------------------- snooze counter
+
+    /** How many times this alarm was snoozed since it last rang "fresh" (limit: AlarmPolicy.MAX_SNOOZES). */
+    public int snoozesUsed(long alarmId) { return sp.getInt("snoozes_used_" + alarmId, 0); }
+
+    public void addSnoozeUsed(long alarmId) { sp.edit().putInt("snoozes_used_" + alarmId, snoozesUsed(alarmId) + 1).apply(); }
+
+    public void resetSnoozesUsed(long alarmId) { sp.edit().remove("snoozes_used_" + alarmId).apply(); }
+
     // ---------------------------------------------------------------- internals
 
     private void write(List<Alarm> all) {

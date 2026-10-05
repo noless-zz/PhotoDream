@@ -171,4 +171,16 @@
     <string name="report_failed">לא ניתן היה ליצור את הדוח</string>
     <string name="alarm_channel">שעוני מעורר</string>
     <string name="alarm_ringing">שעון מעורר</string>
+    <string name="alarm_tap_to_open">לחצו לפתיחה</string>
+    <string name="alarm_hold_to_stop">החזיקו לעצירה</string>
+    <string name="alarm_progress">%1$d / %2$d</string>
+    <string name="alarm_snooze">נודניק %1$d דק׳ (נותרו: %2$d)</string>
+    <string name="alarm_cant_solve">לא מצליחים?</string>
+    <string name="alarm_type_code">הקלידו את הקוד כדי לעצור את השעון:</string>
+    <string name="alarm_code_hint">קוד</string>
+    <string name="alarm_code_wrong">קוד שגוי</string>
+    <string name="alarm_good_morning">בוקר טוב!</string>
+    <string name="alarm_missed_channel">שעונים שהוחמצו</string>
+    <string name="alarm_missed">שעון מעורר שהוחמץ</string>
+    <string name="alarm_missed_text">שעון %1$s צלצל 15 דקות ונעצר מעצמו.</string>
 </resources>
