@@ -5,9 +5,12 @@ phone is charging, because Android starts screensavers ("Dreams") by itself
 when the phone is charging and idle.
 
 ## Try it
-1. Run the app from Android Studio and tap **Choose photo folder** (for example DCIM/Camera).
-2. Tap **Preview now** to see the slideshow straight away.
-3. Tap **Open system screen saver settings**, pick **PhotoDream slideshow**, and set
+1. Open the app. The first-run **welcome screen** explains the idea in three steps.
+2. Pick where photos come from: a folder on the phone (for example DCIM/Camera), **OneDrive**,
+   **Google Drive** – or all of them. Cloud photos are downloaded in the background
+   (see `docs/ONEDRIVE_SETUP.md` and `docs/GOOGLE_DRIVE_SETUP.md` for the one-time setup).
+3. Tap **Preview now** to see the slideshow straight away.
+4. Tap **Open system screen saver settings**, pick **PhotoDream slideshow**, and set
    *When to start* to *While charging*. On Samsung this is under Settings > Display > Screen saver.
    If nothing appears while charging, turn off Always On Display.
 
@@ -15,6 +18,8 @@ Gestures (one photo): swipe = next/previous · tap = pause · long-press (or Bac
 Gestures (photo table): drag a photo · flick it away · long-press the empty table (or Back) = exit.
 
 ## Code map
+Everything is under `app/src/main/java/com/noam/photodream/`.
+
 | File | Role |
 |---|---|
 | `PhotoDreamService` | The screensaver (DreamService) |
@@ -23,10 +28,11 @@ Gestures (photo table): drag a photo · flick it away · long-press the empty ta
 | `PhotoDisplay` | Interface for a display mode (start/stop/release) |
 | `SlideshowView` | Mode 1 – one photo at a time: two stacked ImageViews, transitions, gestures |
 | `PhotoTableView` | Mode 2 – photo table: bordered, tilted photos pile up; drag, flick, drift |
+| `Photo` | One photo + its source id; `key()` is its stable identity |
 | `BitmapLoader` | Decodes photos at screen size (ImageDecoder, EXIF-aware) |
 | `PhotoRepository` | Merges all enabled `PhotoSource`s, shuffles |
 | `source/LocalFolderSource` | Folder picked with the system picker (SAF) |
-| `source/CacheFolderSource` | `files/photo_cache/` – where cloud sync will download to |
+| `source/CacheFolderSource` | `files/photo_cache/<provider>/` – where one cloud's sync downloads to |
 | `SettingsActivity` / `Prefs` | Settings screen and SharedPreferences |
 | `cloud/CloudProvider` | Interface every cloud implements; `CloudProviders` lists them |
 | `cloud/CloudSyncWorker` + `SyncPlanner` | Shared WorkManager sync: download, shrink, rotate, clean up |
@@ -37,6 +43,8 @@ Gestures (photo table): drag a photo · flick it away · long-press the empty ta
 | `onedrive/SecureStore` | OneDrive tokens encrypted with an Android Keystore key |
 
 ## Docs
+- `CLAUDE.md` – rules and architecture notes for Claude Code
+- `docs/ROADMAP.md` – plan and issue map; `docs/CLAUDE_CODE.md` – how Claude Code is wired into this repo
 - `docs/STUDENT_INSTALL.md` – install & use guide for students (Hebrew)
 - `docs/ONEDRIVE_SETUP.md`, `docs/GOOGLE_DRIVE_SETUP.md` – one-time cloud registration
 
