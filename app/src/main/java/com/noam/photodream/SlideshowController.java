@@ -8,6 +8,7 @@ import android.view.View;
 import com.noam.photodream.cloud.CloudProvider;
 import com.noam.photodream.cloud.CloudProviders;
 
+import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.HashMap;
 import java.util.List;
@@ -30,6 +31,8 @@ public class SlideshowController {
     private final ExecutorService io = Executors.newSingleThreadExecutor();
     private final Handler main = new Handler(Looper.getMainLooper());
     private final View nightOverlay;
+    private final android.widget.TextView dateCaption;
+    private boolean showDate, onThisDayOn;
     private PhotoDisplay display;
     private List<Photo> loadedPhotos;
     private int normalIntervalSeconds;
@@ -47,8 +50,14 @@ public class SlideshowController {
         this.table = root.findViewById(R.id.photo_table);
         this.clockBox = root.findViewById(R.id.clock_box);
         this.nightOverlay = root.findViewById(R.id.night_overlay);
-        slideshow.setListener(listener);
-        table.setListener(listener);
+        // our own listener: leave requests go to the caller, "photo shown" updates the date caption
+        PhotoDisplay.Listener inner = new PhotoDisplay.Listener() {
+            @Override public void onExitRequested() { listener.onExitRequested(); }
+            @Override public void onPhotoShown(Photo photo) { showDateCaption(photo); }
+        };
+        slideshow.setListener(inner);
+        table.setListener(inner);
+        dateCaption = root.findViewById(R.id.photo_date);
     }
 
     public void start() {
@@ -80,6 +89,10 @@ public class SlideshowController {
         nightFrom = LocalTime.of(prefs.getNightFromMinutes() / 60, prefs.getNightFromMinutes() % 60);
         nightTo = LocalTime.of(prefs.getNightToMinutes() / 60, prefs.getNightToMinutes() % 60);
         night = false;
+        showDate = prefs.isShowPhotoDate();
+        onThisDayOn = prefs.isOnThisDay();
+        dateCaption.setVisibility(View.GONE);
+        table.setOnThisDay(onThisDayOn ? this::isOnThisDay : null);
         clockBox.setVisibility(prefs.isShowClock() ? View.VISIBLE : View.GONE);
 
         started = true;
@@ -88,18 +101,64 @@ public class SlideshowController {
         final PhotoDisplay target = display;
         io.execute(() -> {
             List<Photo> photos = PhotoRepository.loadAll(context);
+            DateIndexer.indexLocal(context, photos, 300);        // phone photos: read EXIF dates a few hundred at a time
             main.post(() -> {
                 if (started && display == target) {
                     // hidden photos never show; favorites come up 3x as often
                     PhotoMarksStore store = PhotoMarksStore.get(context);
                     List<Photo> visible = store.marks().visible(photos);
-                    target.setWeights(store.marks().hasFavoriteIn(visible) ? store.marks()::weight : null);
+                    target.setWeights(buildWeights(store.marks(), visible));
                     loadedPhotos = visible;
                     applyNight();                 // sets the night look and the interval, then starts when appropriate
                     if (!(night && nightStyle == Prefs.NightStyle.CLOCK_ONLY)) target.start(visible);
                 }
             });
         });
+    }
+
+    // ---------------------------------------------------------------- dates: caption and "On this day"
+
+    private boolean isOnThisDay(Photo photo) {
+        return PhotoDates.isOnThisDay(PhotoDateIndex.get(context).dateOf(photo), LocalDate.now());
+    }
+
+    /**
+     * Favorites ×3 and "on this day" photos ×4 (they multiply). Null – plain order – when nothing
+     * deserves more attention, so the shuffle/in-order setting keeps working as before.
+     */
+    private PhotoQueue.Weights buildWeights(PhotoMarks marks, List<Photo> visible) {
+        boolean anyFavorite = marks.hasFavoriteIn(visible);
+        boolean anyOnThisDay = false;
+        if (onThisDayOn) {
+            for (Photo p : visible) {
+                if (isOnThisDay(p)) {
+                    anyOnThisDay = true;
+                    break;
+                }
+            }
+        }
+        if (!anyFavorite && !anyOnThisDay) return null;
+        final boolean boost = onThisDayOn;
+        return p -> marks.weight(p) * (boost && isOnThisDay(p) ? PhotoDates.ON_THIS_DAY_WEIGHT : 1.0);
+    }
+
+    /** "June 2023 · 3 years ago" above the clock, if the setting is on and the date is known. */
+    private void showDateCaption(Photo photo) {
+        if (!showDate) return;
+        LocalDate date = PhotoDateIndex.get(context).dateOf(photo);
+        if (date == null) {
+            dateCaption.setVisibility(View.GONE);
+            return;
+        }
+        String month = date.getMonth().getDisplayName(java.time.format.TextStyle.FULL_STANDALONE, java.util.Locale.getDefault());
+        String text = month + " " + date.getYear();
+        int years = PhotoDates.yearsAgo(date, LocalDate.now());
+        if (years >= 1) {
+            text = context.getString(R.string.photo_date_caption, text,
+                    context.getResources().getQuantityString(R.plurals.years_ago, years, years));
+        }
+        dateCaption.setText(text);
+        dateCaption.setVisibility(View.VISIBLE);
     }
 
     // ---------------------------------------------------------------- night mode

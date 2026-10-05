@@ -22,7 +22,7 @@ import java.util.List;
  */
 public final class GraphClient {
 
-    private static final String SELECT = "id,name,folder,file,image,size";
+    private static final String SELECT = "id,name,folder,file,image,photo,size";
 
     private final Context context;
 
@@ -91,8 +91,10 @@ public final class GraphClient {
         JSONObject file = j.optJSONObject("file");
         String mime = file != null ? file.optString("mimeType", "") : "";
         boolean image = file != null && (mime.startsWith("image/") || j.has("image"));
+        JSONObject photo = j.optJSONObject("photo");
+        String taken = photo == null ? null : photo.optString("takenDateTime", null);
         return new CloudItem(CloudIds.encode(driveId, j.optString("id")), j.optString("name"), f != null, image,
-                f != null ? f.optInt("childCount") : -1);
+                f != null ? f.optInt("childCount") : -1, taken);
     }
 
     /** Downloads a file's original content into {@code target}. */

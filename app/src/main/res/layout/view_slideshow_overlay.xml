@@ -34,6 +34,17 @@
         android:layout_margin="32dp"
         android:orientation="vertical">
 
+        <!-- "June 2023 · 3 years ago" – only with the "Show photo date" setting -->
+        <TextView
+            android:id="@+id/photo_date"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:shadowColor="#AA000000"
+            android:shadowRadius="8"
+            android:textColor="@color/overlay_text"
+            android:textSize="16sp"
+            android:visibility="gone" />
+
         <TextClock
             android:id="@+id/clock"
             android:layout_width="wrap_content"

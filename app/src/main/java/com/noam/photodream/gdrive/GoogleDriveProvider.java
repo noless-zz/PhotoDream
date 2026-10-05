@@ -185,7 +185,7 @@ public class GoogleDriveProvider implements CloudProvider {
                 ? "sharedWithMe = true and mimeType = '" + FOLDER_MIME + "' and trashed = false"
                 : "'" + folderId.replace("'", "\\'") + "' in parents and trashed = false";
         String base = API + "/files?pageSize=1000&fields="
-                + Uri.encode("nextPageToken,files(id,name,mimeType)")
+                + Uri.encode("nextPageToken,files(id,name,mimeType,imageMediaMetadata(time))")
                 + "&q=" + Uri.encode(q);
         List<CloudItem> out = new ArrayList<>();
         String pageToken = null;
@@ -198,8 +198,10 @@ public class GoogleDriveProvider implements CloudProvider {
                     JSONObject f = files.optJSONObject(i);
                     if (f == null) continue;
                     String mime = f.optString("mimeType", "");
+                    JSONObject meta = f.optJSONObject("imageMediaMetadata");
                     out.add(new CloudItem(f.optString("id"), f.optString("name"),
-                            FOLDER_MIME.equals(mime), mime.startsWith("image/"), -1));
+                            FOLDER_MIME.equals(mime), mime.startsWith("image/"), -1,
+                            meta == null ? null : meta.optString("time", null)));
                 }
             }
             pageToken = page.optString("nextPageToken", "");

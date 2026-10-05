@@ -13,6 +13,9 @@ public interface PhotoDisplay {
     /** The user asked to leave (long-press). */
     interface Listener {
         void onExitRequested();
+
+        /** A photo just appeared on screen (for the date caption). Default: ignore. */
+        default void onPhotoShown(Photo photo) { }
     }
 
     /** Start (or restart) with a list of photos. Main thread only. */

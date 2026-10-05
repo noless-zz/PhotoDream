@@ -39,6 +39,8 @@ public class DisplaySettingsActivity extends SettingsScreen {
         setupSwitch(R.id.sw_crop, prefs.isCrop(), prefs::setCrop);
         setupSwitch(R.id.sw_clock, prefs.isShowClock(), prefs::setShowClock);
         setupSwitch(R.id.sw_dim, prefs.isDim(), prefs::setDim);
+        setupSwitch(R.id.sw_photo_date, prefs.isShowPhotoDate(), prefs::setShowPhotoDate);
+        setupSwitch(R.id.sw_on_this_day, prefs.isOnThisDay(), prefs::setOnThisDay);
         setupNight();
     }
 

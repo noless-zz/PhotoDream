@@ -84,11 +84,22 @@ public class PhotoTableView extends FrameLayout implements PhotoDisplay {
     private static final class CardImageView extends androidx.appcompat.widget.AppCompatImageView {
         private final Paint heartPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
         private boolean favorite;
+        private String ribbon;                           // "On this day" label, or null
+        private final Paint ribbonBg = new Paint(Paint.ANTI_ALIAS_FLAG);
+        private final Paint ribbonText = new Paint(Paint.ANTI_ALIAS_FLAG);
 
         CardImageView(Context c) {
             super(c);
+            ribbonBg.setColor(0xE0E0A458);
+            ribbonText.setColor(0xFF1B1B1B);
+            ribbonText.setFakeBoldText(true);
             heartPaint.setColor(0xFFE0405A);
             heartPaint.setShadowLayer(3f, 0f, 1f, 0x99000000);
+        }
+
+        void setRibbon(String text) {
+            ribbon = text;
+            invalidate();
         }
 
         void setFavorite(boolean on) {
@@ -99,6 +110,14 @@ public class PhotoTableView extends FrameLayout implements PhotoDisplay {
         @Override
         protected void onDraw(Canvas canvas) {
             super.onDraw(canvas);
+            if (ribbon != null) {
+                float size = Math.max(11f, getWidth() * 0.06f);
+                ribbonText.setTextSize(size);
+                float pad = size * 0.5f;
+                float w = ribbonText.measureText(ribbon) + pad * 2;
+                canvas.drawRoundRect(0f, size * 0.6f, w, size * 0.6f + size * 1.6f, size * 0.3f, size * 0.3f, ribbonBg);
+                canvas.drawText(ribbon, pad, size * 0.6f + size * 1.2f, ribbonText);
+            }
             if (!favorite) return;
             float size = Math.max(14f, getWidth() * 0.1f);
             heartPaint.setTextSize(size);
@@ -115,6 +134,7 @@ public class PhotoTableView extends FrameLayout implements PhotoDisplay {
     private Map<String, Integer> frameColors = new HashMap<>();   // source id -> frame color
     private PhotoMarksStore marks;
     private PhotoQueue.Weights weights;
+    private java.util.function.Predicate<Photo> onThisDay;
     private LinearLayout focusButtons;                 // ♥ Favorite and ✕ Hide, shown while a photo is focused
     private TextView btnFavorite;
     private TextView undoPill;
@@ -211,6 +231,9 @@ public class PhotoTableView extends FrameLayout implements PhotoDisplay {
 
     @Override
     public void setWeights(PhotoQueue.Weights w) { weights = w; }
+
+    /** Which photos get the "On this day" ribbon (null = none). */
+    public void setOnThisDay(java.util.function.Predicate<Photo> p) { onThisDay = p; }
     /** Border color per source id; sources without an entry keep the classic white frame. */
     public void setFrameColors(Map<String, Integer> colors) { frameColors = new HashMap<>(colors); }
 
@@ -299,6 +322,7 @@ public class PhotoTableView extends FrameLayout implements PhotoDisplay {
 
         CardImageView iv = new CardImageView(getContext());
         iv.setFavorite(marks != null && marks.marks().isFavorite(photo.key()));
+        iv.setRibbon(onThisDay != null && onThisDay.test(photo) ? getContext().getString(R.string.on_this_day) : null);
         iv.setLayoutParams(new LayoutParams(w, h, Gravity.TOP | Gravity.START));
         iv.setScaleType(ImageView.ScaleType.CENTER_CROP);   // trims a sliver so the border never distorts the photo
         iv.setBackgroundColor(frameColors.getOrDefault(photo.sourceId, Color.WHITE));
@@ -318,6 +342,7 @@ public class PhotoTableView extends FrameLayout implements PhotoDisplay {
 
         Card card = new Card(iv, photo);
         card.small = bmp;
+        if (listener != null) listener.onPhotoShown(photo);
         cards.add(card);
         addView(iv);
         messageView.bringToFront();

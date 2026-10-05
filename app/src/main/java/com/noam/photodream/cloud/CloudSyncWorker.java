@@ -17,6 +17,8 @@ import androidx.work.ForegroundInfo;
 import androidx.work.Worker;
 import androidx.work.WorkerParameters;
 
+import com.noam.photodream.PhotoDateIndex;
+import com.noam.photodream.PhotoDates;
 import com.noam.photodream.PhotoMarksStore;
 import com.noam.photodream.R;
 import com.noam.photodream.source.CacheFolderSource;
@@ -147,6 +149,17 @@ public class CloudSyncWorker extends Worker {
 
         File dir = cacheDir(ctx, provider);
         if (!dir.isDirectory() && !dir.mkdirs()) throw new IOException("Cannot create " + dir);
+
+        // the shrunken copies lose their EXIF, so remember when each photo was taken, as the cloud says
+        PhotoDateIndex dateIndex = PhotoDateIndex.get(ctx);
+        java.util.Set<String> keysInCloud = new HashSet<>();
+        for (CloudItem item : remote) {
+            String key = provider.id() + ":" + fileName(provider, item.id);
+            keysInCloud.add(key);
+            if (item.takenDate != null) dateIndex.put(key, PhotoDates.parse(item.takenDate));
+        }
+        dateIndex.retainOnly(provider.id(), keysInCloud);
+        dateIndex.save();
 
         // what we already have: file name <-> cloud id
         Map<String, String> fileForId = new HashMap<>();

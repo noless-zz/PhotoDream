@@ -251,4 +251,13 @@
     <string name="widget_description">תמונה אקראית מהתיקיות והענן שלך, מתחלפת כל חצי שעה. הקשה פותחת תצוגה מקדימה.</string>
     <string name="widget_empty">פתחו את PhotoDream ובחרו תמונות</string>
     <string name="widget_image_description">תמונה אקראית</string>
+    <string name="show_photo_date">הצגת תאריך התמונה</string>
+    <string name="on_this_day_setting">להציג לעיתים קרובות יותר תמונות מהיום הזה בשנים קודמות</string>
+    <string name="on_this_day">ביום הזה</string>
+    <string name="photo_date_caption">%1$s · %2$s</string>
+    <plurals name="years_ago">
+        <item quantity="one">לפני שנה</item>
+        <item quantity="two">לפני שנתיים</item>
+        <item quantity="other">לפני %1$d שנים</item>
+    </plurals>
 </resources>

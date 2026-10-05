@@ -241,6 +241,7 @@ public class SlideshowView extends FrameLayout implements PhotoDisplay {
         final ImageView incoming = imageViews[1 - front];
 
         resetView(incoming);
+        if (listener != null) listener.onPhotoShown(photo);
         incoming.setImageBitmap(bmp);
         incoming.bringToFront();
         strip.bringToFront();

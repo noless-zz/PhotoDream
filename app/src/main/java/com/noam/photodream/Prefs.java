@@ -127,6 +127,14 @@ public class Prefs {
     }
     public void setNightStyle(NightStyle s) { sp.edit().putString("night_style", s.name()).apply(); }
 
+    /** Caption above the clock with the month, year and "3 years ago" of the photo on screen. */
+    public boolean isShowPhotoDate() { return sp.getBoolean("show_photo_date", false); }
+    public void setShowPhotoDate(boolean on) { sp.edit().putBoolean("show_photo_date", on).apply(); }
+
+    /** Photos taken around today's date in earlier years come up more often (and get a ribbon). */
+    public boolean isOnThisDay() { return sp.getBoolean("on_this_day", true); }
+    public void setOnThisDay(boolean on) { sp.edit().putBoolean("on_this_day", on).apply(); }
+
     /** When we last asked GitHub for a newer release (epoch ms), and the newest tag it told us about. */
     public long getUpdateCheckedAt() { return sp.getLong("update_checked_at", 0); }
     public void setUpdateCheckedAt(long ms) { sp.edit().putLong("update_checked_at", ms).apply(); }

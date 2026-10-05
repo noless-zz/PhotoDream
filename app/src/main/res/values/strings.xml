@@ -244,4 +244,12 @@
     <string name="widget_description">A random photo from your folders and clouds, changing every half hour. Tap to open the preview.</string>
     <string name="widget_empty">Open PhotoDream and choose some photos</string>
     <string name="widget_image_description">Random photo</string>
+    <string name="show_photo_date">Show photo date</string>
+    <string name="on_this_day_setting">Show photos from this day in earlier years more often</string>
+    <string name="on_this_day">On this day</string>
+    <string name="photo_date_caption">%1$s · %2$s</string>
+    <plurals name="years_ago">
+        <item quantity="one">%1$d year ago</item>
+        <item quantity="other">%1$d years ago</item>
+    </plurals>
 </resources>
