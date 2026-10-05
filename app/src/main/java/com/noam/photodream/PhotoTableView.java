@@ -51,13 +51,22 @@ public class PhotoTableView extends FrameLayout implements PhotoDisplay {
     private static final long EXIT_MS = 600;
     private static final long FLICK_MS = 400;
     private static final float FLICK_SPEED = 2500f;   // px per second
+    private static final long FOCUS_MS = 350;
+    private static final float FOCUS_MARGIN = 0.04f;  // free border around a focused photo
+    private static final float SCRIM_ALPHA = 0.8f;
 
     /** One photo on the table. */
     private static final class Card {
         final ImageView view;
+        final Photo photo;
         Animator drift;
+        Bitmap small;                       // the card-sized bitmap, restored after focus mode
+        float homeX, homeY, homeRot, homeScaleX, homeScaleY;   // where it lay before it was focused
 
-        Card(ImageView view) { this.view = view; }
+        Card(ImageView view, Photo photo) {
+            this.view = view;
+            this.photo = photo;
+        }
 
         void cancelAnimations() {
             view.animate().cancel();
@@ -92,6 +101,12 @@ public class PhotoTableView extends FrameLayout implements PhotoDisplay {
     private int failuresInARow;
     private boolean running;
 
+    // focus mode (double-tap a photo)
+    private Card focused;
+    private View scrim;
+    private int focusRequestId;
+    private boolean doubleTapHandled;      // the second tap of a double-tap must not start a drag
+
     // dragging
     private Card dragged;
     private float lastX, lastY;
@@ -120,7 +135,31 @@ public class PhotoTableView extends FrameLayout implements PhotoDisplay {
 
             @Override public void onLongPress(MotionEvent e) {
                 // Only on the empty table: holding a photo before dragging it must not exit.
-                if (dragged == null && listener != null) listener.onExitRequested();
+                if (dragged == null && focused == null && listener != null) listener.onExitRequested();
+            }
+
+            @Override public boolean onDoubleTap(MotionEvent e) {
+                doubleTapHandled = true;
+                if (focused != null) {
+                    unfocus();
+                } else {
+                    Card hit = cardAt(e.getX(), e.getY());
+                    if (hit != null) focus(hit);
+                    else if (listener != null) listener.onExitRequested();   // double-tap on the black table
+                }
+                return true;
+            }
+
+            @Override public boolean onFling(MotionEvent e1, MotionEvent e2, float vx, float vy) {
+                // while a photo is focused: swipe sideways to look at the next / previous one
+                if (focused == null || e1 == null || Math.abs(vx) < Math.abs(vy)) return false;
+                int i = cards.indexOf(focused);
+                if (i < 0 || cards.size() < 2) return false;
+                int next = Math.floorMod(i + (vx < 0 ? 1 : -1), cards.size());
+                Card target = cards.get(next);
+                unfocus();
+                focus(target);
+                return true;
             }
 
         });
@@ -163,8 +202,10 @@ public class PhotoTableView extends FrameLayout implements PhotoDisplay {
     public void stop() {
         running = false;
         requestId++;
+        focusRequestId++;
         handler.removeCallbacksAndMessages(null);
         for (Card c : cards) c.cancelAnimations();
+        if (scrim != null) scrim.animate().cancel();
         endDrag();
     }
 
@@ -178,10 +219,11 @@ public class PhotoTableView extends FrameLayout implements PhotoDisplay {
     // ---------------------------------------------------------------- adding cards
 
     private void addNextCard() {
-        if (!running || photos.isEmpty()) return;
+        if (!running || photos.isEmpty() || focused != null) return;   // no new cards while one is focused
         handler.removeCallbacks(advance);
         index = (index + 1) % photos.size();
-        final Uri uri = photos.get(index).uri;
+        final Photo photo = photos.get(index);
+        final Uri uri = photo.uri;
         final int id = ++requestId;
         final int longSide = cardLongSide();
 
@@ -189,18 +231,23 @@ public class PhotoTableView extends FrameLayout implements PhotoDisplay {
             Bitmap bmp = BitmapLoader.load(getContext(), uri, longSide);
             handler.post(() -> {
                 if (id != requestId || !running) return;
+                if (focused != null) {
+                    // the user focused a photo while this one was loading: put it back in the queue
+                    index = Math.floorMod(index - 1, photos.size());
+                    return;
+                }
                 if (bmp == null) {
                     if (++failuresInARow < photos.size()) handler.postDelayed(advance, RETRY_MS);
                     return;
                 }
                 failuresInARow = 0;
-                placeCard(bmp, longSide);
+                placeCard(bmp, longSide, photo);
                 handler.postDelayed(advance, intervalMs);
             });
         });
     }
 
-    private void placeCard(Bitmap bmp, int longSide) {
+    private void placeCard(Bitmap bmp, int longSide, Photo photo) {
         // keep the photo's own shape: long side = longSide, other side follows
         int w, h;
         if (bmp.getWidth() >= bmp.getHeight()) {
@@ -230,7 +277,8 @@ public class PhotoTableView extends FrameLayout implements PhotoDisplay {
         float y = cy - h / 2f;
         float rot = maxRotation == 0 ? 0 : randomBetween(-maxRotation, maxRotation);
 
-        Card card = new Card(iv);
+        Card card = new Card(iv, photo);
+        card.small = bmp;
         cards.add(card);
         addView(iv);
         messageView.bringToFront();
@@ -319,6 +367,12 @@ public class PhotoTableView extends FrameLayout implements PhotoDisplay {
     }
 
     private void removeAllCards() {
+        if (scrim != null) {
+            scrim.animate().cancel();
+            removeView(scrim);
+            scrim = null;
+        }
+        focused = null;
         for (Card c : cards) {
             c.cancelAnimations();
             discard(c.view);
@@ -363,7 +417,8 @@ public class PhotoTableView extends FrameLayout implements PhotoDisplay {
 
         switch (e.getActionMasked()) {
             case MotionEvent.ACTION_DOWN: {
-                Card hit = cardAt(e.getX(), e.getY());
+                // focused photos can't be dragged; the 2nd tap of a double-tap must not pick a card up
+                Card hit = (focused != null || doubleTapHandled) ? null : cardAt(e.getX(), e.getY());
                 if (hit != null) {
                     dragged = hit;
                     hit.cancelAnimations();
@@ -393,6 +448,7 @@ public class PhotoTableView extends FrameLayout implements PhotoDisplay {
                 return true;
 
             case MotionEvent.ACTION_UP:
+                doubleTapHandled = false;
                 if (dragged == null) performClick();   // tap on the empty table: lets accessibility services see it
                 if (dragged != null) {
                     velocity.addMovement(e);
@@ -410,6 +466,7 @@ public class PhotoTableView extends FrameLayout implements PhotoDisplay {
                 return true;
 
             case MotionEvent.ACTION_CANCEL:
+                doubleTapHandled = false;
                 Card card = dragged;
                 endDrag();
                 if (card != null) startDrift(card);
@@ -430,6 +487,92 @@ public class PhotoTableView extends FrameLayout implements PhotoDisplay {
             velocity.recycle();
             velocity = null;
         }
+    }
+
+    // ---------------------------------------------------------------- focus mode
+
+    /**
+     * Double-tap: remember where the card lies, then glide it to the middle of the screen,
+     * straighten it and scale it up to fit. Everything else fades under a dark scrim, no new
+     * cards arrive and nothing drifts until {@link #unfocus()}.
+     */
+    private void focus(Card card) {
+        focused = card;
+        handler.removeCallbacks(advance);
+        for (Card c : cards) {
+            c.cancelAnimations();
+            // a card caught half-way through its entry animation settles where it is
+            c.view.setAlpha(1f);
+            c.view.setScaleX(1f);
+            c.view.setScaleY(1f);
+        }
+        endDrag();
+
+        View v = card.view;
+        card.homeX = v.getTranslationX();
+        card.homeY = v.getTranslationY();
+        card.homeRot = v.getRotation();
+        card.homeScaleX = v.getScaleX();
+        card.homeScaleY = v.getScaleY();
+
+        if (scrim == null) {
+            scrim = new View(getContext());
+            scrim.setBackgroundColor(Color.BLACK);
+            scrim.setLayoutParams(new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
+            scrim.setAlpha(0f);
+            addView(scrim);
+        }
+        scrim.animate().cancel();
+        scrim.bringToFront();
+        v.bringToFront();
+        messageView.bringToFront();
+        scrim.animate().alpha(SCRIM_ALPHA).setDuration(FOCUS_MS).start();
+
+        int w = v.getLayoutParams().width, h = v.getLayoutParams().height;
+        float scale = FitMath.fitScale(w, h, tableWidth(), tableHeight(), FOCUS_MARGIN);
+        v.setTranslationZ(12 * density);
+        v.animate().translationX((tableWidth() - w) / 2f).translationY((tableHeight() - h) / 2f)
+                .rotation(0f).scaleX(scale).scaleY(scale)
+                .setDuration(FOCUS_MS).setInterpolator(new DecelerateInterpolator()).start();
+
+        // cards are decoded at card size – load the photo at the size it is shown now so it looks sharp
+        final int id = ++focusRequestId;
+        final int longSide = Math.round(Math.max(w, h) * scale);
+        loader.execute(() -> {
+            Bitmap big = BitmapLoader.load(getContext(), card.photo.uri, longSide);
+            handler.post(() -> {
+                if (big == null || id != focusRequestId || focused != card) return;
+                card.view.setImageBitmap(big);
+            });
+        });
+    }
+
+    /** Double-tap again: fly back to exactly where it was and let the table carry on. */
+    private void unfocus() {
+        final Card card = focused;
+        if (card == null) return;
+        focused = null;
+        focusRequestId++;                     // a late sharp bitmap must not replace the small one
+        View v = card.view;
+        v.animate().translationX(card.homeX).translationY(card.homeY).rotation(card.homeRot)
+                .scaleX(card.homeScaleX).scaleY(card.homeScaleY)
+                .setDuration(FOCUS_MS).setInterpolator(new DecelerateInterpolator())
+                .withEndAction(() -> {
+                    v.setTranslationZ(0f);
+                    if (card.small != null) card.view.setImageBitmap(card.small);   // drop the big bitmap
+                    startDrift(card);
+                }).start();
+        if (scrim != null) {
+            final View s = scrim;
+            s.animate().alpha(0f).setDuration(FOCUS_MS).withEndAction(() -> {
+                if (scrim == s && focused == null) {
+                    removeView(s);
+                    scrim = null;
+                }
+            }).start();
+        }
+        for (Card c : cards) if (c != card) startDrift(c);   // the others float again too
+        if (running) handler.postDelayed(advance, intervalMs);
     }
 
     /** Throw the card off the table in the direction of the flick. */

@@ -101,6 +101,11 @@ public class SlideshowView extends FrameLayout implements PhotoDisplay {
                 return true;
             }
 
+            @Override public boolean onDoubleTap(MotionEvent e) {
+                if (listener != null) listener.onExitRequested();   // double-tap anywhere = leave
+                return true;
+            }
+
             @Override public boolean onFling(MotionEvent e1, MotionEvent e2, float vx, float vy) {
                 if (Math.abs(vx) < Math.abs(vy)) return false;   // vertical swipe: ignore
                 if (vx < 0) next(); else previous();

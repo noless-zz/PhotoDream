@@ -31,7 +31,7 @@
     <string name="msg_no_photos">No photos yet.\nOpen PhotoDream and choose a folder.</string>
     <string name="msg_paused">Paused</string>
     <string name="msg_playing">Playing</string>
-    <string name="gesture_hint">Swipe = next/previous · Tap = pause · Long-press = exit</string>
+    <string name="gesture_hint">Swipe = next/previous · Tap = pause · Double-tap or long-press = exit</string>
 
     <string name="section_mode">Display mode</string>
     <string name="mode_single">One photo at a time</string>
@@ -47,7 +47,7 @@
     <string name="card_size_label">Photo size: %1$d%%</string>
     <string name="rotation_label">Max tilt: %1$d°</string>
     <string name="drift">Slow floating movement</string>
-    <string name="table_gestures">Drag a photo to move it · flick it to throw it away · long-press the empty table (or Back) to exit</string>
+    <string name="table_gestures">Drag a photo to move it · flick it to throw it away · double-tap a photo to enlarge it, double-tap again to go back · double-tap the empty table (or long-press, or Back) to exit</string>
 
     <!-- cloud sources (shared) -->
     <string name="cloud_not_connected">Not connected</string>
@@ -101,7 +101,7 @@
     <string name="welcome_step2_title">2 · Turn on the screen saver</string>
     <string name="welcome_step2_text">In the system screen saver settings choose \"PhotoDream slideshow\" and set it to start while charging. On Samsung: Settings › Display › Screen saver. If nothing appears, turn off Always On Display.</string>
     <string name="welcome_step3_title">3 · Charge and enjoy</string>
-    <string name="welcome_step3_text">Put the phone on the charger and let the screen time out. Swipe to change photos, drag them on the photo table, long-press to leave – the lock screen stays protected.</string>
+    <string name="welcome_step3_text">Put the phone on the charger and let the screen time out. Swipe to change photos, drag them on the photo table, double-tap a photo to enlarge it, double-tap the empty table to leave – the lock screen stays protected.</string>
     <string name="welcome_start">Let\'s start</string>
     <string name="show_intro">Show introduction</string>
 

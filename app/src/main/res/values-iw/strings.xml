@@ -32,7 +32,7 @@
     <string name="msg_no_photos">עדיין אין תמונות.\nיש לפתוח את PhotoDream ולבחור תיקייה.</string>
     <string name="msg_paused">מושהה</string>
     <string name="msg_playing">מתנגן</string>
-    <string name="gesture_hint">החלקה = הבאה/הקודמת · הקשה = השהיה · לחיצה ארוכה = יציאה</string>
+    <string name="gesture_hint">החלקה = הבאה/הקודמת · הקשה = השהיה · הקשה כפולה או לחיצה ארוכה = יציאה</string>
 
     <string name="section_mode">מצב תצוגה</string>
     <string name="mode_single">תמונה אחת בכל פעם</string>
@@ -48,7 +48,7 @@
     <string name="card_size_label">גודל תמונה: %1$d%%</string>
     <string name="rotation_label">הטיה מרבית: %1$d°</string>
     <string name="drift">תנועה איטית מרחפת</string>
-    <string name="table_gestures">גרירת תמונה מזיזה אותה · הטלה מהירה זורקת אותה · לחיצה ארוכה על שולחן ריק (או ״חזרה״) ליציאה</string>
+    <string name="table_gestures">גרירת תמונה מזיזה אותה · הטלה מהירה זורקת אותה · הקשה כפולה על תמונה מגדילה אותה, והקשה כפולה נוספת מחזירה · הקשה כפולה על שולחן ריק (או לחיצה ארוכה, או ״חזרה״) ליציאה</string>
 
     <!-- ענן -->
     <string name="cloud_not_connected">לא מחובר</string>
@@ -100,7 +100,7 @@
     <string name="welcome_step2_title">2 · מפעילים את שומר המסך</string>
     <string name="welcome_step2_text">בהגדרות שומר המסך של המערכת בוחרים ב״מצגת PhotoDream״ וקובעים שיתחיל בזמן טעינה. בסמסונג: הגדרות › תצוגה › שומר מסך. אם לא מופיע כלום, כדאי לכבות את Always On Display.</string>
     <string name="welcome_step3_title">3 · מטעינים ונהנים</string>
-    <string name="welcome_step3_text">מניחים את הטלפון בטעינה ונותנים למסך לכבות. החלקה מחליפה תמונה, בשולחן התמונות אפשר לגרור אותן, ולחיצה ארוכה יוצאת – מסך הנעילה נשאר מוגן.</string>
+    <string name="welcome_step3_text">מניחים את הטלפון בטעינה ונותנים למסך לכבות. החלקה מחליפה תמונה, בשולחן התמונות אפשר לגרור אותן, הקשה כפולה על תמונה מגדילה אותה, והקשה כפולה על שולחן ריק יוצאת – מסך הנעילה נשאר מוגן.</string>
     <string name="welcome_start">מתחילים</string>
     <string name="show_intro">הצגת ההסבר</string>
 
