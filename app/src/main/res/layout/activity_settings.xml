@@ -33,6 +33,29 @@
             android:layout_height="wrap_content"
             android:text="@string/no_folder" />
 
+        <!-- only visible once a phone folder is chosen -->
+        <LinearLayout
+            android:id="@+id/group_local"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:visibility="gone">
+
+            <com.google.android.material.materialswitch.MaterialSwitch
+                android:id="@+id/sw_local_show"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:minHeight="48dp"
+                android:text="@string/source_show" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_remove_folder"
+                style="@style/Widget.Material3.Button.TextButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/remove_folder" />
+        </LinearLayout>
+
         <TextView
             android:id="@+id/txt_count"
             android:layout_width="match_parent"

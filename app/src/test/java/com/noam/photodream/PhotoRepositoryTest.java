@@ -64,6 +64,17 @@ public class PhotoRepositoryTest {
     }
 
     @Test
+    public void filterEnabledDropsHiddenSources() {
+        List<PhotoSource> sources = Arrays.asList(
+                new FakeSource("local", 1), new FakeSource("onedrive", 1), new FakeSource("gdrive", 1));
+        List<PhotoSource> shown = PhotoRepository.filterEnabled(sources, id -> !id.equals("onedrive"));
+        assertEquals(2, shown.size());
+        assertEquals("local", shown.get(0).id());
+        assertEquals("gdrive", shown.get(1).id());
+        assertEquals(0, PhotoRepository.load(null, PhotoRepository.filterEnabled(sources, id -> false), false, new Random()).size());
+    }
+
+    @Test
     public void shuffleKeepsEveryPhoto() {
         List<PhotoSource> sources = Arrays.asList(new FakeSource("local", 20), new FakeSource("onedrive", 20));
         List<Photo> plain = PhotoRepository.load(null, sources, false, new Random(1));

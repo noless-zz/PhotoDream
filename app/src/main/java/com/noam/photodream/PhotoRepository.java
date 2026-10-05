@@ -12,12 +12,13 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Random;
+import java.util.function.Predicate;
 
 /** Collects photos from every enabled source. Call from a background thread. */
 public class PhotoRepository {
 
-    /** The phone folder (if chosen) plus one cache folder per cloud provider. */
-    public static List<PhotoSource> enabledSources(Context context) {
+    /** Every source that exists, shown or hidden: the phone folder (if chosen) plus one cache per cloud. */
+    public static List<PhotoSource> allSources(Context context) {
         Prefs prefs = new Prefs(context);
         List<PhotoSource> sources = new ArrayList<>();
         if (prefs.getLocalFolder() != null) {
@@ -27,6 +28,21 @@ public class PhotoRepository {
             sources.add(new CacheFolderSource(p.id()));
         }
         return sources;
+    }
+
+    /** Only the sources the user left switched on in settings. */
+    public static List<PhotoSource> enabledSources(Context context) {
+        Prefs prefs = new Prefs(context);
+        return filterEnabled(allSources(context), prefs::isSourceEnabled);
+    }
+
+    /** Keeps the sources whose id the predicate accepts. Pure, so it is unit-tested. */
+    public static List<PhotoSource> filterEnabled(List<PhotoSource> sources, Predicate<String> isEnabled) {
+        List<PhotoSource> out = new ArrayList<>();
+        for (PhotoSource s : sources) {
+            if (isEnabled.test(s.id())) out.add(s);
+        }
+        return out;
     }
 
     public static List<Photo> loadAll(Context context) {

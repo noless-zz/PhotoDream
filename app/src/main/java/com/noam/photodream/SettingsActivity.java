@@ -26,6 +26,7 @@ import com.google.android.material.materialswitch.MaterialSwitch;
 import com.noam.photodream.cloud.CloudProvider;
 import com.noam.photodream.cloud.CloudProviders;
 import com.noam.photodream.cloud.CloudSourceView;
+import com.noam.photodream.source.PhotoSource;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -65,6 +66,11 @@ public class SettingsActivity extends AppCompatActivity {
 
         Button choose = findViewById(R.id.btn_choose_folder);
         choose.setOnClickListener(v -> pickFolder.launch(prefs.getLocalFolder()));
+        setupSwitch(R.id.sw_local_show, prefs.isSourceEnabled("local"), on -> {
+            prefs.setSourceEnabled("local", on);
+            refreshFolderInfo();
+        });
+        findViewById(R.id.btn_remove_folder).setOnClickListener(v -> removeFolder());
 
         setupClouds();
         setupMode();
@@ -190,11 +196,42 @@ public class SettingsActivity extends AppCompatActivity {
             String id = DocumentsContract.getTreeDocumentId(folder);
             txtFolder.setText(id.contains(":") ? id.substring(id.indexOf(':') + 1) : id);
         }
+        findViewById(R.id.group_local).setVisibility(folder == null ? View.GONE : View.VISIBLE);
         txtCount.setText(R.string.counting);
         io.execute(() -> {
+            // "Phone 120 · OneDrive 200 (hidden) · Google Drive 0"
+            StringBuilder perSource = new StringBuilder();
+            for (PhotoSource s : PhotoRepository.allSources(this)) {
+                if (perSource.length() > 0) perSource.append(" · ");
+                perSource.append(sourceLabel(s.id())).append(' ').append(s.listPhotos(this).size());
+                if (!prefs.isSourceEnabled(s.id())) perSource.append(" (").append(getString(R.string.source_hidden)).append(')');
+            }
             int n = PhotoRepository.loadAll(this).size();
-            runOnUiThread(() -> txtCount.setText(getString(R.string.photo_count, n)));
+            runOnUiThread(() -> txtCount.setText(getString(R.string.photo_count, n)
+                    + (perSource.length() > 0 ? "\n" + perSource : "")));
         });
+    }
+
+    private String sourceLabel(String sourceId) {
+        return "local".equals(sourceId) ? getString(R.string.source_phone)
+                : CloudProviders.get(sourceId).displayName(this);
+    }
+
+    /**
+     * Forget the phone folder: give back the read permission Android kept for us
+     * (otherwise the system keeps a limited list of them) and clear the setting.
+     * Cloud sources are not touched.
+     */
+    private void removeFolder() {
+        Uri folder = prefs.getLocalFolder();
+        if (folder == null) return;
+        try {
+            getContentResolver().releasePersistableUriPermission(folder, Intent.FLAG_GRANT_READ_URI_PERMISSION);
+        } catch (SecurityException ignored) {
+            // permission was already gone – nothing to release
+        }
+        prefs.setLocalFolder(null);
+        refreshFolderInfo();
     }
 
     private void setupInterval() {

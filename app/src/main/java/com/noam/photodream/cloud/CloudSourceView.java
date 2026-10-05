@@ -16,6 +16,7 @@ import androidx.work.WorkManager;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.materialswitch.MaterialSwitch;
+import com.noam.photodream.Prefs;
 import com.noam.photodream.R;
 
 import java.util.List;
@@ -90,6 +91,14 @@ public class CloudSourceView extends LinearLayout {
         findViewById(R.id.cs_folder_btn).setOnClickListener(v -> {
             host.onSyncRequested();
             activity.startActivity(CloudFolderActivity.intent(activity, p));
+        });
+
+        // "Show in slideshow": hiding keeps the sync running, so turning it back on is instant
+        MaterialSwitch show = findViewById(R.id.cs_show);
+        show.setChecked(new Prefs(activity).isSourceEnabled(p.id()));
+        show.setOnCheckedChangeListener((b, on) -> {
+            new Prefs(activity).setSourceEnabled(p.id(), on);
+            host.onPhotosChanged();
         });
 
         MaterialSwitch subfolders = findViewById(R.id.cs_subfolders);

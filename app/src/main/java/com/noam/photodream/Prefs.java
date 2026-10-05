@@ -37,6 +37,13 @@ public class Prefs {
         sp.edit().putString(KEY_FOLDER, uri == null ? null : uri.toString()).apply();
     }
 
+    /**
+     * Whether a source ("local", "onedrive", "gdrive") is part of the slideshow.
+     * Hiding a cloud only leaves it out of the show; it keeps syncing in the background.
+     */
+    public boolean isSourceEnabled(String sourceId) { return sp.getBoolean("source_enabled_" + sourceId, true); }
+    public void setSourceEnabled(String sourceId, boolean on) { sp.edit().putBoolean("source_enabled_" + sourceId, on).apply(); }
+
     /** Seconds each photo stays on screen (5..60). */
     public int getIntervalSeconds() { return sp.getInt(KEY_INTERVAL, 10); }
     public void setIntervalSeconds(int s) { sp.edit().putInt(KEY_INTERVAL, s).apply(); }

@@ -17,6 +17,13 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content" />
 
+    <com.google.android.material.materialswitch.MaterialSwitch
+        android:id="@+id/cs_show"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:minHeight="48dp"
+        android:text="@string/source_show" />
+
     <!-- shown only while connected -->
     <LinearLayout
         android:id="@+id/cs_group"
