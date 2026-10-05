@@ -223,4 +223,6 @@
     <string name="challenge_runaway">Catch the runaway photo</string>
     <string name="runaway_card">Runaway photo</string>
     <string name="challenge_memory">Memory pairs</string>
+    <string name="update_available">PhotoDream %1$s is available</string>
+    <string name="update_download">Download</string>
 </resources>

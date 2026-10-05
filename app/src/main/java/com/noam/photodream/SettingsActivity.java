@@ -23,6 +23,8 @@ import java.util.List;
  */
 public class SettingsActivity extends SettingsScreen {
 
+    private final java.util.concurrent.ExecutorService io = java.util.concurrent.Executors.newSingleThreadExecutor();
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -30,6 +32,14 @@ public class SettingsActivity extends SettingsScreen {
         if (savedInstanceState == null && WelcomeActivity.shouldShow(this)) {
             startActivity(new Intent(this, WelcomeActivity.class));
         }
+
+        findViewById(R.id.btn_update).setOnClickListener(v -> {
+            try {
+                startActivity(new Intent(Intent.ACTION_VIEW, android.net.Uri.parse(UpdateChecker.DOWNLOAD_URL)));
+            } catch (RuntimeException e) {
+                Toast.makeText(this, R.string.about_no_browser, Toast.LENGTH_LONG).show();
+            }
+        });
 
         findViewById(R.id.cat_photos).setOnClickListener(v ->
                 startActivity(new Intent(this, PhotosSettingsActivity.class)));
@@ -58,6 +68,27 @@ public class SettingsActivity extends SettingsScreen {
     protected void onResume() {
         super.onResume();
         refreshSummaries();
+        showUpdateBanner();
+        // at most once a day: ask GitHub in the background, then show the banner if there is news
+        io.execute(() -> {
+            UpdateChecker.checkIfDue(this);
+            runOnUiThread(this::showUpdateBanner);
+        });
+    }
+
+    @Override
+    protected void onDestroy() {
+        io.shutdownNow();
+        super.onDestroy();
+    }
+
+    private void showUpdateBanner() {
+        String version = UpdateChecker.availableVersion(this);
+        View banner = findViewById(R.id.banner_update);
+        banner.setVisibility(version == null ? View.GONE : View.VISIBLE);
+        if (version != null) {
+            ((TextView) findViewById(R.id.txt_update)).setText(getString(R.string.update_available, version));
+        }
     }
 
     /** One-line summaries under each category title; cheap (no photo listing). */

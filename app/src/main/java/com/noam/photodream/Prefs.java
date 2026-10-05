@@ -104,6 +104,12 @@ public class Prefs {
     public boolean isSourceStrip() { return sp.getBoolean("source_strip", false); }
     public void setSourceStrip(boolean on) { sp.edit().putBoolean("source_strip", on).apply(); }
 
+    /** When we last asked GitHub for a newer release (epoch ms), and the newest tag it told us about. */
+    public long getUpdateCheckedAt() { return sp.getLong("update_checked_at", 0); }
+    public void setUpdateCheckedAt(long ms) { sp.edit().putLong("update_checked_at", ms).apply(); }
+    public String getLatestTag() { return sp.getString("latest_tag", ""); }
+    public void setLatestTag(String tag) { sp.edit().putString("latest_tag", tag).apply(); }
+
     /** Seconds each photo stays on screen (5..60). */
     public int getIntervalSeconds() { return sp.getInt(KEY_INTERVAL, 10); }
     public void setIntervalSeconds(int s) { sp.edit().putInt(KEY_INTERVAL, s).apply(); }

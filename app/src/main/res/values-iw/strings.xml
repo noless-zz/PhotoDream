@@ -230,4 +230,6 @@
     <string name="challenge_runaway">תופסים את התמונה הבורחת</string>
     <string name="runaway_card">תמונה בורחת</string>
     <string name="challenge_memory">זוגות זיכרון</string>
+    <string name="update_available">גרסה חדשה של PhotoDream זמינה: %1$s</string>
+    <string name="update_download">הורדה</string>
 </resources>
