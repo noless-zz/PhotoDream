@@ -17,6 +17,7 @@ import java.util.Set;
  * background, and keeps it in {@link PhotoDateIndex}. Cloud photos are skipped: their date comes
  * from the cloud during sync (the shrunken copies have no EXIF).
  */
+@SuppressLint("ExifInterface")      // see the note on readDate
 public final class DateIndexer {
 
     private static final String TAG = "DateIndexer";
@@ -41,7 +42,6 @@ public final class DateIndexer {
 
     // android.media.ExifInterface can read an InputStream since API 24 – enough here, and the
     // androidx replacement would be a new dependency (not allowed without asking).
-    @SuppressLint("ExifInterface")
     private static LocalDate readDate(Context context, Photo photo) {
         try (InputStream in = context.getContentResolver().openInputStream(photo.uri)) {
             if (in == null) return null;
