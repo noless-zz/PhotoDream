@@ -8,7 +8,6 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.graphics.Matrix;
-import android.net.Uri;
 import android.os.Handler;
 import android.os.Looper;
 import android.util.AttributeSet;
@@ -32,8 +31,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 /**
  * "Photo table" mode: printed-looking photos (white border, shadow, slight
@@ -92,22 +89,19 @@ public class PhotoTableView extends FrameLayout implements PhotoDisplay {
     // state
     private final List<Card> cards = new ArrayList<>();   // oldest first
     private final Handler handler = new Handler(Looper.getMainLooper());
-    private final ExecutorService loader = Executors.newSingleThreadExecutor();
+    private final AsyncBitmapLoader cardLoader;      // photos for new cards
+    private final AsyncBitmapLoader focusLoader;     // the sharp, screen-size version of a focused card
     private final Random random = new Random();
     private final GestureDetector gestures;
     private final TextView messageView;
     private final float density;
 
-    private List<Photo> photos = new ArrayList<>();
-    private int index = -1;
-    private int requestId;
-    private int failuresInARow;
+    private PhotoQueue queue = new PhotoQueue(new ArrayList<>(), new Random());
     private boolean running;
 
     // focus mode (double-tap a photo)
     private Card focused;
     private View scrim;
-    private int focusRequestId;
     private boolean doubleTapHandled;      // the second tap of a double-tap must not start a drag
 
     // dragging
@@ -121,6 +115,8 @@ public class PhotoTableView extends FrameLayout implements PhotoDisplay {
 
     public PhotoTableView(Context context, AttributeSet attrs) {
         super(context, attrs);
+        cardLoader = new AsyncBitmapLoader(context);
+        focusLoader = new AsyncBitmapLoader(context);
         density = getResources().getDisplayMetrics().density;
         setClipChildren(false);
 
@@ -190,11 +186,10 @@ public class PhotoTableView extends FrameLayout implements PhotoDisplay {
     public void start(List<Photo> newPhotos) {
         stop();
         removeAllCards();
-        photos = new ArrayList<>(newPhotos);
-        index = -1;
-        failuresInARow = 0;
+        queue = new PhotoQueue(newPhotos, random);
+        queue.setReshuffleOnWrap(new Prefs(getContext()).isShuffle());
         running = true;
-        if (photos.isEmpty()) {
+        if (queue.isEmpty()) {
             messageView.setText(R.string.msg_no_photos);
             messageView.setVisibility(VISIBLE);
             return;
@@ -206,8 +201,8 @@ public class PhotoTableView extends FrameLayout implements PhotoDisplay {
     @Override
     public void stop() {
         running = false;
-        requestId++;
-        focusRequestId++;
+        cardLoader.cancel();
+        focusLoader.cancel();
         handler.removeCallbacksAndMessages(null);
         for (Card c : cards) c.cancelAnimations();
         if (scrim != null) scrim.animate().cancel();
@@ -217,38 +212,34 @@ public class PhotoTableView extends FrameLayout implements PhotoDisplay {
     @Override
     public void release() {
         stop();
-        loader.shutdownNow();
+        cardLoader.release();
+        focusLoader.release();
         removeAllCards();
     }
 
     // ---------------------------------------------------------------- adding cards
 
     private void addNextCard() {
-        if (!running || photos.isEmpty() || focused != null) return;   // no new cards while one is focused
+        if (!running || queue.isEmpty() || focused != null) return;   // no new cards while one is focused
         handler.removeCallbacks(advance);
-        index = (index + 1) % photos.size();
-        final Photo photo = photos.get(index);
-        final Uri uri = photo.uri;
-        final int id = ++requestId;
+        final Photo photo = queue.next();
+        if (photo == null) return;
         final int longSide = cardLongSide();
 
-        loader.execute(() -> {
-            Bitmap bmp = BitmapLoader.load(getContext(), uri, longSide);
-            handler.post(() -> {
-                if (id != requestId || !running) return;
-                if (focused != null) {
-                    // the user focused a photo while this one was loading: put it back in the queue
-                    index = Math.floorMod(index - 1, photos.size());
-                    return;
-                }
-                if (bmp == null) {
-                    if (++failuresInARow < photos.size()) handler.postDelayed(advance, RETRY_MS);
-                    return;
-                }
-                failuresInARow = 0;
-                placeCard(bmp, longSide, photo);
-                handler.postDelayed(advance, intervalMs);
-            });
+        cardLoader.load(photo.uri, longSide, bmp -> {
+            if (!running) return;
+            if (focused != null) {
+                // the user focused a photo while this one was loading: put it back in the queue
+                queue.previous();
+                return;
+            }
+            if (bmp == null) {
+                queue.markFailed(photo);          // unreadable: never pick it again
+                handler.postDelayed(advance, RETRY_MS);
+                return;
+            }
+            placeCard(bmp, longSide, photo);
+            handler.postDelayed(advance, intervalMs);
         });
     }
 
@@ -541,14 +532,10 @@ public class PhotoTableView extends FrameLayout implements PhotoDisplay {
                 .setDuration(FOCUS_MS).setInterpolator(new DecelerateInterpolator()).start();
 
         // cards are decoded at card size – load the photo at the size it is shown now so it looks sharp
-        final int id = ++focusRequestId;
         final int longSide = Math.round(Math.max(w, h) * scale);
-        loader.execute(() -> {
-            Bitmap big = BitmapLoader.load(getContext(), card.photo.uri, longSide);
-            handler.post(() -> {
-                if (big == null || id != focusRequestId || focused != card) return;
-                card.view.setImageBitmap(big);
-            });
+        focusLoader.load(card.photo.uri, longSide, big -> {
+            if (big == null || focused != card) return;
+            card.view.setImageBitmap(big);
         });
     }
 
@@ -557,7 +544,7 @@ public class PhotoTableView extends FrameLayout implements PhotoDisplay {
         final Card card = focused;
         if (card == null) return;
         focused = null;
-        focusRequestId++;                     // a late sharp bitmap must not replace the small one
+        focusLoader.cancel();                 // a late sharp bitmap must not replace the small one
         View v = card.view;
         v.animate().translationX(card.homeX).translationY(card.homeY).rotation(card.homeRot)
                 .scaleX(card.homeScaleX).scaleY(card.homeScaleY)

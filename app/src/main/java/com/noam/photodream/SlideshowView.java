@@ -7,7 +7,6 @@ import android.animation.PropertyValuesHolder;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Color;
-import android.net.Uri;
 import android.os.Handler;
 import android.os.Looper;
 import android.util.AttributeSet;
@@ -27,8 +26,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
 import java.util.Random;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 /**
  * Full-screen photo slideshow with animated transitions and touch control.
@@ -56,16 +53,13 @@ public class SlideshowView extends FrameLayout implements PhotoDisplay {
     private final TextView messageView;
 
     private final Handler handler = new Handler(Looper.getMainLooper());
-    private final ExecutorService loader = Executors.newSingleThreadExecutor();
+    private final AsyncBitmapLoader bitmaps;
     private final Random random = new Random();
     private final GestureDetector gestures;
 
-    private List<Photo> photos = new ArrayList<>();
-    private int index = -1;
-    private int requestId = 0;                   // ignores decodes that finished too late
+    private PhotoQueue queue = new PhotoQueue(new ArrayList<>(), new Random());
     private boolean running;
     private boolean paused;
-    private int failuresInARow;
     private Animator kenBurns;
     private final View strip;                    // thin bar in the current photo's source color
     private boolean showStrip;
@@ -83,6 +77,7 @@ public class SlideshowView extends FrameLayout implements PhotoDisplay {
 
     public SlideshowView(Context context, AttributeSet attrs) {
         super(context, attrs);
+        bitmaps = new AsyncBitmapLoader(context);
         for (int i = 0; i < 2; i++) {
             ImageView iv = new ImageView(context);
             iv.setLayoutParams(new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
@@ -157,12 +152,11 @@ public class SlideshowView extends FrameLayout implements PhotoDisplay {
     /** Start (or restart) with a new list of photos. Call on the main thread. */
     @Override
     public void start(List<Photo> newPhotos) {
-        photos = new ArrayList<>(newPhotos);
-        index = -1;
+        queue = new PhotoQueue(newPhotos, random);
+        queue.setReshuffleOnWrap(new Prefs(getContext()).isShuffle());
         running = true;
         paused = false;
-        failuresInARow = 0;
-        if (photos.isEmpty()) {
+        if (queue.isEmpty()) {
             showMessage(getContext().getString(R.string.msg_no_photos), false);
             return;
         }
@@ -173,7 +167,7 @@ public class SlideshowView extends FrameLayout implements PhotoDisplay {
     @Override
     public void stop() {
         running = false;
-        requestId++;
+        bitmaps.cancel();
         handler.removeCallbacksAndMessages(null);
         cancelAnimations();
     }
@@ -182,14 +176,14 @@ public class SlideshowView extends FrameLayout implements PhotoDisplay {
     @Override
     public void release() {
         stop();
-        loader.shutdownNow();
+        bitmaps.release();
     }
 
     public void next() { show(+1); }
     public void previous() { show(-1); }
 
     public void togglePause() {
-        if (!running || photos.isEmpty()) return;
+        if (!running || queue.isEmpty()) return;
         paused = !paused;
         handler.removeCallbacks(advance);
         if (paused) {
@@ -205,27 +199,26 @@ public class SlideshowView extends FrameLayout implements PhotoDisplay {
     // ---------------------------------------------------------------- internals
 
     private void show(int delta) {
-        if (!running || photos.isEmpty()) return;
+        if (!running) return;
         handler.removeCallbacks(advance);
-        index = Math.floorMod(index + delta, photos.size());
-        final Uri uri = photos.get(index).uri;
-        final int id = ++requestId;
-        final int target = targetLongSide();
         final boolean forward = delta >= 0;
+        final Photo photo = forward ? queue.next() : queue.previous();
+        if (photo == null) {
+            // going back past the first photo does nothing; running out of photos shows the empty message
+            if (forward) showMessage(getContext().getString(R.string.msg_no_photos), false);
+            return;
+        }
 
-        loader.execute(() -> {
-            Bitmap bmp = BitmapLoader.load(getContext(), uri, target);
-            handler.post(() -> {
-                if (id != requestId || !running) return;   // user swiped again / stopped
-                if (bmp == null) {
-                    // unreadable file: skip it, but don't spin forever if all fail
-                    if (++failuresInARow < photos.size()) handler.postDelayed(() -> show(forward ? 1 : -1), RETRY_MS);
-                    return;
-                }
-                failuresInARow = 0;
-                display(bmp, forward, photos.get(index));
-                scheduleNext();
-            });
+        bitmaps.load(photo.uri, targetLongSide(), bmp -> {
+            if (!running) return;                    // stopped while decoding (a newer swipe replaces this request)
+            if (bmp == null) {
+                // unreadable file: never pick it again, and move on
+                queue.markFailed(photo);
+                handler.postDelayed(() -> show(forward ? 1 : -1), RETRY_MS);
+                return;
+            }
+            display(bmp, forward, photo);
+            scheduleNext();
         });
     }
 
