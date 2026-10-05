@@ -38,7 +38,6 @@
     <string name="show_clock">הצגת שעון</string>
     <string name="dim">עמעום המסך (מתאים ליד המיטה)</string>
 
-    <string name="section_run">הפעלה</string>
     <string name="preview">תצוגה מקדימה</string>
     <string name="open_system_settings">פתיחת הגדרות שומר המסך</string>
     <string name="system_hint">בהגדרות המערכת יש לבחור ב״מצגת PhotoDream״ ולקבוע ״מתי להתחיל״ ל״בזמן טעינה״. בסמסונג ייתכן שיהיה צורך לכבות את Always On Display.</string>
@@ -148,5 +147,21 @@
         <item quantity="one">(תמונה אחת דולגה: פורמט לא נתמך)</item>
         <item quantity="two">(%1$d דולגו: פורמט לא נתמך)</item>
         <item quantity="other">(%1$d דולגו: פורמט לא נתמך)</item>
+    </plurals>
+    <string name="settings_display">תצוגה</string>
+    <string name="settings_alarms">שעוני מעורר</string>
+    <string name="settings_about">אודות</string>
+    <string name="summary_alarms_soon">בקרוב</string>
+    <string name="summary_photos_none">עדיין לא חוברו תמונות</string>
+    <string name="summary_display">%1$s · %2$d שנ׳ לתמונה</string>
+    <string name="about_version">גרסה %1$s</string>
+    <string name="about_guide">מדריך לתלמידים</string>
+    <string name="about_repo">PhotoDream ב־GitHub</string>
+    <string name="about_privacy">התמונות שלך נשארות בטלפון. PhotoDream מתחבר ל־OneDrive או ל־Google Drive רק כדי להוריד את התיקייה שבחרת, ולא מעלה שום דבר.</string>
+    <string name="about_no_browser">לא נמצא דפדפן לפתיחת הקישור</string>
+    <plurals name="summary_phone_folders">
+        <item quantity="one">תיקייה אחת בטלפון</item>
+        <item quantity="two">%1$d תיקיות בטלפון</item>
+        <item quantity="other">%1$d תיקיות בטלפון</item>
     </plurals>
 </resources>

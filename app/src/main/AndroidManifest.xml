@@ -32,6 +32,20 @@
             </intent-filter>
         </activity>
 
+        <!-- Settings sub-screens -->
+        <activity
+            android:name=".PhotosSettingsActivity"
+            android:exported="false"
+            android:parentActivityName=".SettingsActivity" />
+        <activity
+            android:name=".DisplaySettingsActivity"
+            android:exported="false"
+            android:parentActivityName=".SettingsActivity" />
+        <activity
+            android:name=".AboutActivity"
+            android:exported="false"
+            android:parentActivityName=".SettingsActivity" />
+
         <!-- First-run introduction -->
         <activity
             android:name=".WelcomeActivity"

@@ -37,7 +37,6 @@
     <string name="show_clock">Show clock</string>
     <string name="dim">Dim screen (good for bedside)</string>
 
-    <string name="section_run">Run it</string>
     <string name="preview">Preview now</string>
     <string name="open_system_settings">Open system screen saver settings</string>
     <string name="system_hint">In system settings, pick \"PhotoDream slideshow\" and set \"When to start\" to \"While charging\". On Samsung you may need to turn off Always On Display.</string>
@@ -143,5 +142,20 @@
     <plurals name="cloud_unsupported_skipped">
         <item quantity="one">(%1$d skipped: unsupported format)</item>
         <item quantity="other">(%1$d skipped: unsupported format)</item>
+    </plurals>
+    <string name="settings_display">Display</string>
+    <string name="settings_alarms">Wake-up alarms</string>
+    <string name="settings_about">About</string>
+    <string name="summary_alarms_soon">Coming soon</string>
+    <string name="summary_photos_none">No photos connected yet</string>
+    <string name="summary_display">%1$s · %2$d s per photo</string>
+    <string name="about_version">Version %1$s</string>
+    <string name="about_guide">Student guide</string>
+    <string name="about_repo">PhotoDream on GitHub</string>
+    <string name="about_privacy">Your photos stay on your phone. PhotoDream only connects to OneDrive or Google Drive to download the folder you choose, and it never uploads anything.</string>
+    <string name="about_no_browser">No browser found to open the link</string>
+    <plurals name="summary_phone_folders">
+        <item quantity="one">%1$d phone folder</item>
+        <item quantity="other">%1$d phone folders</item>
     </plurals>
 </resources>

@@ -13,324 +13,178 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:accessibilityHeading="true"
             android:text="@string/app_name"
             android:textAppearance="?attr/textAppearanceHeadlineMedium" />
 
-        <!-- ===== Photos ===== -->
-        <TextView
-            style="@style/SectionTitle"
-            android:text="@string/section_photos" />
-
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btn_choose_folder"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/add_folder" />
-
-        <TextView
-            android:id="@+id/txt_folder"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/no_folder" />
-
-        <!-- one row per chosen phone folder, filled in by SettingsActivity -->
+        <!-- ===== Categories: each opens its own screen ===== -->
         <LinearLayout
-            android:id="@+id/list_folders"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical" />
-
-        <!-- only visible once a phone folder is chosen -->
-        <LinearLayout
-            android:id="@+id/group_local"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:visibility="gone">
-
-            <com.google.android.material.materialswitch.MaterialSwitch
-                android:id="@+id/sw_local_show"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:minHeight="48dp"
-                android:text="@string/source_show" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/frame_color" />
-
-            <com.noam.photodream.SwatchPicker
-                android:id="@+id/sw_local_frame"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content" />
-
-        </LinearLayout>
-
-        <TextView
-            android:id="@+id/txt_count"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:textStyle="bold" />
-
-        <com.google.android.material.materialswitch.MaterialSwitch
-            android:id="@+id/sw_strip"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:minHeight="48dp"
-            android:text="@string/source_strip" />
-
-        <!-- ===== Cloud sources (same controls for each cloud) ===== -->
-        <com.noam.photodream.cloud.CloudSourceView
-            android:id="@+id/source_onedrive"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
-
-        <com.noam.photodream.cloud.CloudSourceView
-            android:id="@+id/source_gdrive"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
-
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btn_battery"
-            style="@style/Widget.Material3.Button.TextButton"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/cloud_battery" />
-
-        <TextView
-            android:id="@+id/txt_battery_hint"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:alpha="0.6"
-            android:text="@string/cloud_battery_hint" />
-
-        <!-- ===== Display mode ===== -->
-        <TextView
-            style="@style/SectionTitle"
-            android:text="@string/section_mode" />
-
-        <RadioGroup
-            android:id="@+id/group_mode"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content">
-
-            <RadioButton
-            android:minHeight="48dp"
-                android:id="@+id/radio_mode_single"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/mode_single" />
-
-            <RadioButton
-            android:minHeight="48dp"
-                android:id="@+id/radio_mode_table"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/mode_table" />
-        </RadioGroup>
-
-        <!-- ===== Slideshow (both modes) ===== -->
-        <TextView
-            style="@style/SectionTitle"
-            android:text="@string/section_slideshow" />
-
-        <TextView
-            android:id="@+id/txt_interval"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content" />
-
-        <SeekBar
-            android:minHeight="48dp"
-            android:id="@+id/seek_interval"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:max="55" />
-
-        <!-- only for "one photo at a time" -->
-        <LinearLayout
-            android:id="@+id/group_single_only"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
             android:orientation="vertical">
 
-            <TextView
-                android:layout_width="wrap_content"
+        <LinearLayout
+            android:id="@+id/cat_photos"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="?attr/selectableItemBackground"
+            android:clickable="true"
+            android:focusable="true"
+            android:gravity="center_vertical"
+            android:minHeight="72dp"
+            android:orientation="horizontal"
+            android:paddingVertical="8dp">
+
+            <ImageView
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:importantForAccessibility="no"
+                android:src="@drawable/ic_cat_photos" />
+
+            <LinearLayout
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
-                android:text="@string/transition_label" />
+                android:layout_marginStart="16dp"
+                android:layout_weight="1"
+                android:orientation="vertical">
 
-            <RadioGroup
-                android:id="@+id/group_transition"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content">
-
-                <RadioButton
-            android:minHeight="48dp"
-                    android:id="@+id/radio_slide"
-                    android:layout_width="wrap_content"
+                <TextView
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="@string/transition_slide" />
+                    android:text="@string/section_photos"
+                    android:textAppearance="?attr/textAppearanceTitleMedium" />
 
-                <RadioButton
-            android:minHeight="48dp"
-                    android:id="@+id/radio_fade"
-                    android:layout_width="wrap_content"
+                <TextView
+                    android:id="@+id/sum_photos"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="@string/transition_fade" />
-
-                <RadioButton
-            android:minHeight="48dp"
-                    android:id="@+id/radio_ken_burns"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/transition_ken_burns" />
-            </RadioGroup>
-
-            <com.google.android.material.materialswitch.MaterialSwitch
-            android:minHeight="48dp"
-                android:id="@+id/sw_crop"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="@string/crop" />
+                    android:alpha="0.7" />
+            </LinearLayout>
         </LinearLayout>
 
-        <com.google.android.material.materialswitch.MaterialSwitch
-            android:minHeight="48dp"
-            android:id="@+id/sw_shuffle"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/shuffle" />
-
-        <com.google.android.material.materialswitch.MaterialSwitch
-            android:minHeight="48dp"
-            android:id="@+id/sw_clock"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/show_clock" />
-
-        <com.google.android.material.materialswitch.MaterialSwitch
-            android:minHeight="48dp"
-            android:id="@+id/sw_dim"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/dim" />
-
-        <!-- ===== Photo table (only for table mode) ===== -->
         <LinearLayout
-            android:id="@+id/group_table_only"
+            android:id="@+id/cat_display"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical">
+            android:background="?attr/selectableItemBackground"
+            android:clickable="true"
+            android:focusable="true"
+            android:gravity="center_vertical"
+            android:minHeight="72dp"
+            android:orientation="horizontal"
+            android:paddingVertical="8dp">
 
-            <TextView
-                style="@style/SectionTitle"
-                android:text="@string/section_table" />
+            <ImageView
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:importantForAccessibility="no"
+                android:src="@drawable/ic_cat_display" />
 
-            <TextView
-                android:layout_width="wrap_content"
+            <LinearLayout
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:text="@string/entry_label" />
+                android:layout_marginStart="16dp"
+                android:layout_weight="1"
+                android:orientation="vertical">
 
-            <RadioGroup
-                android:id="@+id/group_entry"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content">
-
-                <RadioButton
-            android:minHeight="48dp"
-                    android:id="@+id/radio_entry_drop"
-                    android:layout_width="wrap_content"
+                <TextView
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="@string/entry_drop" />
+                    android:text="@string/settings_display"
+                    android:textAppearance="?attr/textAppearanceTitleMedium" />
 
-                <RadioButton
-            android:minHeight="48dp"
-                    android:id="@+id/radio_entry_fly"
-                    android:layout_width="wrap_content"
+                <TextView
+                    android:id="@+id/sum_display"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="@string/entry_fly_in" />
+                    android:alpha="0.7" />
+            </LinearLayout>
+        </LinearLayout>
 
-                <RadioButton
-            android:minHeight="48dp"
-                    android:id="@+id/radio_entry_pop"
-                    android:layout_width="wrap_content"
+        <LinearLayout
+            android:id="@+id/cat_alarms"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="?attr/selectableItemBackground"
+            android:clickable="true"
+            android:focusable="true"
+            android:gravity="center_vertical"
+            android:minHeight="72dp"
+            android:orientation="horizontal"
+            android:paddingVertical="8dp">
+
+            <ImageView
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:importantForAccessibility="no"
+                android:src="@drawable/ic_cat_alarm" />
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="@string/entry_pop" />
+                    android:text="@string/settings_alarms"
+                    android:textAppearance="?attr/textAppearanceTitleMedium" />
 
-                <RadioButton
-            android:minHeight="48dp"
-                    android:id="@+id/radio_entry_fade"
-                    android:layout_width="wrap_content"
+                <TextView
+                    android:id="@+id/sum_alarms"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="@string/entry_fade" />
+                    android:alpha="0.7" />
+            </LinearLayout>
+        </LinearLayout>
 
-                <RadioButton
-            android:minHeight="48dp"
-                    android:id="@+id/radio_entry_random"
-                    android:layout_width="wrap_content"
+        <LinearLayout
+            android:id="@+id/cat_about"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="?attr/selectableItemBackground"
+            android:clickable="true"
+            android:focusable="true"
+            android:gravity="center_vertical"
+            android:minHeight="72dp"
+            android:orientation="horizontal"
+            android:paddingVertical="8dp">
+
+            <ImageView
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:importantForAccessibility="no"
+                android:src="@drawable/ic_cat_about" />
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="@string/entry_random" />
-            </RadioGroup>
+                    android:text="@string/settings_about"
+                    android:textAppearance="?attr/textAppearanceTitleMedium" />
 
-            <TextView
-                android:id="@+id/txt_max_cards"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="12dp" />
-
-            <SeekBar
-            android:minHeight="48dp"
-                android:id="@+id/seek_max_cards"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content" />
-
-            <TextView
-                android:id="@+id/txt_card_size"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="12dp" />
-
-            <SeekBar
-            android:minHeight="48dp"
-                android:id="@+id/seek_card_size"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content" />
-
-            <TextView
-                android:id="@+id/txt_rotation"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="12dp" />
-
-            <SeekBar
-            android:minHeight="48dp"
-                android:id="@+id/seek_rotation"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content" />
-
-            <com.google.android.material.materialswitch.MaterialSwitch
-            android:minHeight="48dp"
-                android:id="@+id/sw_drift"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="@string/drift" />
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:alpha="0.6"
-                android:text="@string/table_gestures" />
+                <TextView
+                    android:id="@+id/sum_about"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:alpha="0.7" />
+            </LinearLayout>
+        </LinearLayout>
         </LinearLayout>
 
         <!-- ===== Run ===== -->
-        <TextView
-            style="@style/SectionTitle"
-            android:text="@string/section_run" />
-
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btn_preview"
+            android:layout_marginTop="16dp"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="@string/preview" />
@@ -349,13 +203,5 @@
             android:alpha="0.7"
             android:text="@string/system_hint" />
 
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btn_show_intro"
-            style="@style/Widget.Material3.Button.TextButton"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center_horizontal"
-            android:layout_marginTop="16dp"
-            android:text="@string/show_intro" />
     </LinearLayout>
 </ScrollView>
