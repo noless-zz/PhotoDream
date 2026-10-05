@@ -21,7 +21,7 @@ jobs:
         with:
           distribution: temurin
           java-version: 21
-      - uses: gradle/actions/setup-gradle@v4
+      - uses: gradle/actions/setup-gradle@v6
       - name: Build, unit tests, lint
         # no release key here: debug builds fall back to the debug key, release lint still runs
         run: ./gradlew --no-daemon assembleDebug testDebugUnitTest lintRelease
