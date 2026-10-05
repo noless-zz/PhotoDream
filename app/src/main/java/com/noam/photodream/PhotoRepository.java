@@ -1,6 +1,7 @@
 package com.noam.photodream;
 
 import android.content.Context;
+import android.net.Uri;
 
 import com.noam.photodream.cloud.CloudProvider;
 import com.noam.photodream.cloud.CloudProviders;
@@ -21,8 +22,8 @@ public class PhotoRepository {
     public static List<PhotoSource> allSources(Context context) {
         Prefs prefs = new Prefs(context);
         List<PhotoSource> sources = new ArrayList<>();
-        if (prefs.getLocalFolder() != null) {
-            sources.add(new LocalFolderSource(prefs.getLocalFolder()));
+        for (Uri folder : prefs.getLocalFolders()) {
+            sources.add(new LocalFolderSource(folder));
         }
         for (CloudProvider p : CloudProviders.all()) {
             sources.add(new CacheFolderSource(p.id()));

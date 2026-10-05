@@ -4,11 +4,18 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.net.Uri;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+
+import java.util.ArrayList;
+import java.util.List;
+
 /** All user settings in one place (stored in SharedPreferences). */
 public class Prefs {
 
     private static final String FILE = "photodream";
-    private static final String KEY_FOLDER = "local_folder_uri";
+    private static final String KEY_FOLDER = "local_folder_uri";          // old single-folder key
+    private static final String KEY_FOLDERS = "local_folders";
     private static final String KEY_INTERVAL = "interval_sec";
     private static final String KEY_TRANSITION = "transition";
     private static final String KEY_SHUFFLE = "shuffle";
@@ -28,13 +35,54 @@ public class Prefs {
         sp = context.getApplicationContext().getSharedPreferences(FILE, Context.MODE_PRIVATE);
     }
 
-    public Uri getLocalFolder() {
-        String s = sp.getString(KEY_FOLDER, null);
-        return s == null ? null : Uri.parse(s);
+    /**
+     * The phone folders the user picked (all of them together are the "local" source).
+     * Older versions stored one folder under {@code local_folder_uri}; it is moved into the list
+     * the first time this is read.
+     */
+    public List<Uri> getLocalFolders() {
+        List<String> stored = null;
+        String json = sp.getString(KEY_FOLDERS, null);
+        if (json != null) {
+            stored = new ArrayList<>();
+            try {
+                JSONArray a = new JSONArray(json);
+                for (int i = 0; i < a.length(); i++) stored.add(a.getString(i));
+            } catch (JSONException e) {
+                stored.clear();
+            }
+        }
+        List<String> list = FolderList.migrate(stored, sp.getString(KEY_FOLDER, null));
+        if (json == null) {
+            saveFolders(list);                       // migration done: from now on only the list counts
+            sp.edit().remove(KEY_FOLDER).apply();
+        }
+        List<Uri> out = new ArrayList<>();
+        for (String s : list) out.add(Uri.parse(s));
+        return out;
     }
 
-    public void setLocalFolder(Uri uri) {
-        sp.edit().putString(KEY_FOLDER, uri == null ? null : uri.toString()).apply();
+    /** Adds a folder; returns false if it was already in the list. */
+    public boolean addLocalFolder(Uri uri) {
+        List<String> list = toStrings(getLocalFolders());
+        boolean added = FolderList.add(list, uri.toString());
+        if (added) saveFolders(list);
+        return added;
+    }
+
+    public void removeLocalFolder(Uri uri) {
+        List<String> list = toStrings(getLocalFolders());
+        if (FolderList.remove(list, uri.toString())) saveFolders(list);
+    }
+
+    private static List<String> toStrings(List<Uri> uris) {
+        List<String> out = new ArrayList<>();
+        for (Uri u : uris) out.add(u.toString());
+        return out;
+    }
+
+    private void saveFolders(List<String> list) {
+        sp.edit().putString(KEY_FOLDERS, new JSONArray(list).toString()).apply();
     }
 
     /**

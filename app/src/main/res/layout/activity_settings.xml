@@ -25,13 +25,20 @@
             android:id="@+id/btn_choose_folder"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/choose_folder" />
+            android:text="@string/add_folder" />
 
         <TextView
             android:id="@+id/txt_folder"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="@string/no_folder" />
+
+        <!-- one row per chosen phone folder, filled in by SettingsActivity -->
+        <LinearLayout
+            android:id="@+id/list_folders"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical" />
 
         <!-- only visible once a phone folder is chosen -->
         <LinearLayout
@@ -58,12 +65,6 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content" />
 
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btn_remove_folder"
-                style="@style/Widget.Material3.Button.TextButton"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/remove_folder" />
         </LinearLayout>
 
         <TextView

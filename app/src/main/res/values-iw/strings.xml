@@ -4,7 +4,8 @@
     <string name="dream_label">מצגת PhotoDream</string>
 
     <string name="section_photos">תמונות</string>
-    <string name="choose_folder">בחירת תיקיית תמונות</string>
+    <string name="add_folder">הוספת תיקיית תמונות</string>
+    <string name="folder_row">%1$s · %2$d</string>
     <string name="no_folder">עדיין לא נבחרה תיקייה</string>
     <string name="count_with_sources">%1$s\n%2$s</string>
     <string name="frame_color">צבע מסגרת</string>
@@ -22,7 +23,8 @@
     <string name="source_show">הצג במצגת</string>
     <string name="source_hidden">מוסתר</string>
     <string name="source_phone">טלפון</string>
-    <string name="remove_folder">הסרת התיקייה</string>
+    <string name="remove_folder_named">הסרת התיקייה %1$s</string>
+    <string name="folder_already_added">התיקייה הזו כבר נוספה</string>
     <string name="counting">סופר תמונות…</string>
 
     <string name="section_slideshow">מצגת</string>

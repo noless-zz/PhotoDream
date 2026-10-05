@@ -9,8 +9,11 @@ import android.os.Bundle;
 import android.os.PowerManager;
 import android.provider.DocumentsContract;
 import android.provider.Settings;
+import android.view.Gravity;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.LinearLayout;
 import android.widget.RadioGroup;
 import android.widget.SeekBar;
 import android.widget.TextView;
@@ -22,12 +25,18 @@ import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
 
 
+import com.google.android.material.button.MaterialButton;
 import com.google.android.material.materialswitch.MaterialSwitch;
 import com.noam.photodream.cloud.CloudProvider;
 import com.noam.photodream.cloud.CloudProviders;
 import com.noam.photodream.cloud.CloudSourceView;
+import com.noam.photodream.source.LocalFolderSource;
 import com.noam.photodream.source.PhotoSource;
 
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -38,6 +47,7 @@ public class SettingsActivity extends AppCompatActivity {
 
     private Prefs prefs;
     private TextView txtFolder, txtCount, txtInterval;
+    private LinearLayout listFolders;
     private final ExecutorService io = Executors.newSingleThreadExecutor();
 
     /** System folder picker. We keep read access permanently so the screensaver can use it later. */
@@ -45,7 +55,10 @@ public class SettingsActivity extends AppCompatActivity {
             registerForActivityResult(new ActivityResultContracts.OpenDocumentTree(), uri -> {
                 if (uri == null) return;
                 getContentResolver().takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
-                prefs.setLocalFolder(uri);
+                if (!prefs.addLocalFolder(uri)) {
+                    // same folder picked twice: nothing to add (keep the permission, it is still in use)
+                    Toast.makeText(this, R.string.folder_already_added, Toast.LENGTH_SHORT).show();
+                }
                 refreshFolderInfo();
             });
 
@@ -61,11 +74,12 @@ public class SettingsActivity extends AppCompatActivity {
         prefs = new Prefs(this);
 
         txtFolder = findViewById(R.id.txt_folder);
+        listFolders = findViewById(R.id.list_folders);
         txtCount = findViewById(R.id.txt_count);
         txtInterval = findViewById(R.id.txt_interval);
 
         Button choose = findViewById(R.id.btn_choose_folder);
-        choose.setOnClickListener(v -> pickFolder.launch(prefs.getLocalFolder()));
+        choose.setOnClickListener(v -> pickFolder.launch(null));
         setupSwitch(R.id.sw_local_show, prefs.isSourceEnabled("local"), on -> {
             prefs.setSourceEnabled("local", on);
             refreshFolderInfo();
@@ -74,7 +88,6 @@ public class SettingsActivity extends AppCompatActivity {
         localFrame.setSelected(prefs.getFrameColor("local"));
         localFrame.setOnPick(id -> prefs.setFrameColor("local", id));
         setupSwitch(R.id.sw_strip, prefs.isSourceStrip(), prefs::setSourceStrip);
-        findViewById(R.id.btn_remove_folder).setOnClickListener(v -> removeFolder());
 
         setupClouds();
         setupMode();
@@ -193,30 +206,66 @@ public class SettingsActivity extends AppCompatActivity {
     }
 
     private void refreshFolderInfo() {
-        Uri folder = prefs.getLocalFolder();
-        if (folder == null) {
-            txtFolder.setText(R.string.no_folder);
-        } else {
-            // "primary:DCIM/Camera" -> "DCIM/Camera"
-            String id = DocumentsContract.getTreeDocumentId(folder);
-            txtFolder.setText(id.contains(":") ? id.substring(id.indexOf(':') + 1) : id);
-        }
-        findViewById(R.id.group_local).setVisibility(folder == null ? View.GONE : View.VISIBLE);
+        List<Uri> folders = prefs.getLocalFolders();
+        txtFolder.setVisibility(folders.isEmpty() ? View.VISIBLE : View.GONE);
+        findViewById(R.id.group_local).setVisibility(folders.isEmpty() ? View.GONE : View.VISIBLE);
         txtCount.setText(R.string.counting);
         io.execute(() -> {
-            // "Phone 120 · OneDrive 200 (hidden) · Google Drive 0"
-            StringBuilder perSource = new StringBuilder();
+            // count each folder and each source off the main thread (listing can be slow)
+            List<Integer> folderCounts = new ArrayList<>();
+            for (Uri f : folders) folderCounts.add(new LocalFolderSource(f).listPhotos(this).size());
+
+            // "Phone 120 · OneDrive 200 (hidden) · Google Drive 0" – all phone folders add up to one "Phone"
+            Map<String, Integer> perSource = new LinkedHashMap<>();
             for (PhotoSource s : PhotoRepository.allSources(this)) {
-                if (perSource.length() > 0) perSource.append(" · ");
-                perSource.append(sourceLabel(s.id())).append(' ').append(s.listPhotos(this).size());
-                if (!prefs.isSourceEnabled(s.id())) perSource.append(" (").append(getString(R.string.source_hidden)).append(')');
+                perSource.merge(s.id(), s.listPhotos(this).size(), Integer::sum);
+            }
+            StringBuilder summary = new StringBuilder();
+            for (Map.Entry<String, Integer> e : perSource.entrySet()) {
+                if (summary.length() > 0) summary.append(" · ");
+                summary.append(sourceLabel(e.getKey())).append(' ').append(e.getValue());
+                if (!prefs.isSourceEnabled(e.getKey())) {
+                    summary.append(" (").append(getString(R.string.source_hidden)).append(')');
+                }
             }
             int n = PhotoRepository.loadAll(this).size();
             String found = getResources().getQuantityString(R.plurals.photo_count, n, n);
-            runOnUiThread(() -> txtCount.setText(perSource.length() > 0
-                    ? getString(R.string.count_with_sources, found, perSource.toString())
-                    : found));
+            runOnUiThread(() -> {
+                showFolderRows(folders, folderCounts);
+                txtCount.setText(summary.length() > 0
+                        ? getString(R.string.count_with_sources, found, summary.toString())
+                        : found);
+            });
         });
+    }
+
+    /** One row per phone folder: "DCIM/Camera · 120" and a remove button. */
+    private void showFolderRows(List<Uri> folders, List<Integer> counts) {
+        listFolders.removeAllViews();
+        for (int i = 0; i < folders.size(); i++) {
+            Uri folder = folders.get(i);
+            LinearLayout row = new LinearLayout(this);
+            row.setOrientation(LinearLayout.HORIZONTAL);
+            row.setGravity(Gravity.CENTER_VERTICAL);
+
+            // "primary:DCIM/Camera" -> "DCIM/Camera"
+            String id = DocumentsContract.getTreeDocumentId(folder);
+            String name = id.contains(":") ? id.substring(id.indexOf(':') + 1) : id;
+            if (name.isEmpty()) name = id;
+            TextView label = new TextView(this);
+            label.setText(getString(R.string.folder_row, name, counts.get(i)));
+            row.addView(label, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
+
+            MaterialButton remove = new MaterialButton(this, null, com.google.android.material.R.attr.materialIconButtonStyle);
+            remove.setText("\u2715");   // ✕ – a symbol, described for TalkBack below
+            remove.setContentDescription(getString(R.string.remove_folder_named, name));
+            remove.setMinimumWidth(0);
+            remove.setOnClickListener(v -> removeFolder(folder));
+            row.addView(remove, new LinearLayout.LayoutParams(
+                    (int) (48 * getResources().getDisplayMetrics().density),
+                    (int) (48 * getResources().getDisplayMetrics().density)));
+            listFolders.addView(row);
+        }
     }
 
     private String sourceLabel(String sourceId) {
@@ -225,19 +274,17 @@ public class SettingsActivity extends AppCompatActivity {
     }
 
     /**
-     * Forget the phone folder: give back the read permission Android kept for us
-     * (otherwise the system keeps a limited list of them) and clear the setting.
-     * Cloud sources are not touched.
+     * Forget one phone folder: give back the read permission Android kept for us
+     * (otherwise the system keeps a limited list of them) and drop it from the list.
+     * Other folders and the cloud sources are not touched.
      */
-    private void removeFolder() {
-        Uri folder = prefs.getLocalFolder();
-        if (folder == null) return;
+    private void removeFolder(Uri folder) {
         try {
             getContentResolver().releasePersistableUriPermission(folder, Intent.FLAG_GRANT_READ_URI_PERMISSION);
         } catch (SecurityException ignored) {
             // permission was already gone – nothing to release
         }
-        prefs.setLocalFolder(null);
+        prefs.removeLocalFolder(folder);
         refreshFolderInfo();
     }
 

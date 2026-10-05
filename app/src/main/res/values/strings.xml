@@ -3,7 +3,8 @@
     <string name="dream_label">PhotoDream slideshow</string>
 
     <string name="section_photos">Photos</string>
-    <string name="choose_folder">Choose photo folder</string>
+    <string name="add_folder">Add photo folder</string>
+    <string name="folder_row">%1$s · %2$d</string>
     <string name="no_folder">No folder chosen yet</string>
     <string name="count_with_sources">%1$s\n%2$s</string>
     <string name="frame_color">Frame color</string>
@@ -21,7 +22,8 @@
     <string name="source_show">Show in slideshow</string>
     <string name="source_hidden">hidden</string>
     <string name="source_phone">Phone</string>
-    <string name="remove_folder">Remove folder</string>
+    <string name="remove_folder_named">Remove folder %1$s</string>
+    <string name="folder_already_added">That folder is already added</string>
     <string name="counting">Counting photos…</string>
 
     <string name="section_slideshow">Slideshow</string>
