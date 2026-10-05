@@ -264,4 +264,8 @@
     <string name="describe_downloading">Downloading the on-device AI model…</string>
     <string name="describe_progress">Describing photos… %1$d / %2$d</string>
     <string name="describe_hint">Descriptions are made on this phone; no photo leaves it. Labels are added in the background while the phone charges. Sentences need a newer phone and the screen on, so press the button and keep the app open. The Hebrew language pack is downloaded once, on Wi-Fi.</string>
+    <string name="challenge_find">Find the described photo</string>
+    <string name="find_prompt_sentence">Find this photo: “%1$s”</string>
+    <string name="find_prompt_labels">Find the photo with: %1$s</string>
+    <string name="find_fallback">Not enough described photos yet – playing “Flip them all” instead.</string>
 </resources>

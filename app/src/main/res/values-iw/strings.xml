@@ -272,4 +272,8 @@
     <string name="describe_downloading">מוריד את מודל הבינה המלאכותית…</string>
     <string name="describe_progress">מתאר תמונות… %1$d / %2$d</string>
     <string name="describe_hint">התיאורים נוצרים בטלפון עצמו, ואף תמונה לא יוצאת ממנו. תגיות מתווספות ברקע בזמן טעינה. משפטים דורשים טלפון חדש יותר ומסך דולק – לוחצים על הכפתור ומשאירים את האפליקציה פתוחה. חבילת השפה העברית מורדת פעם אחת, ב־Wi‑Fi.</string>
+    <string name="challenge_find">מוצאים את התמונה המתוארת</string>
+    <string name="find_prompt_sentence">מצאו את התמונה: ״%1$s״</string>
+    <string name="find_prompt_labels">מצאו את התמונה עם: %1$s</string>
+    <string name="find_fallback">אין עדיין מספיק תמונות מתוארות – משחקים „הופכים את כולן” במקום.</string>
 </resources>

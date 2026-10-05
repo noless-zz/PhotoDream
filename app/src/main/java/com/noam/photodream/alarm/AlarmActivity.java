@@ -19,6 +19,9 @@ import com.google.android.material.button.MaterialButton;
 import com.noam.photodream.Photo;
 import com.noam.photodream.PhotoRepository;
 import com.noam.photodream.R;
+import com.noam.photodream.describe.Description;
+import com.noam.photodream.describe.DescriptionCache;
+import com.noam.photodream.describe.DescriptionStore;
 
 import java.text.DateFormat;
 import java.util.ArrayList;
@@ -37,7 +40,7 @@ import java.util.concurrent.Executors;
 public class AlarmActivity extends AppCompatActivity {
 
     private static final String EXTRA_ALARM_ID = "alarm_id";
-    private static final int CHALLENGE_PHOTOS = 20;
+    private static final int CHALLENGE_PHOTOS = 24;
 
     private final Handler handler = new Handler(Looper.getMainLooper());
     private final ExecutorService io = Executors.newSingleThreadExecutor();
@@ -100,10 +103,20 @@ public class AlarmActivity extends AppCompatActivity {
         io.execute(() -> {
             List<Photo> all = new ArrayList<>(PhotoRepository.loadAll(this));
             Collections.shuffle(all, random);
-            List<Photo> chosen = all.subList(0, Math.min(CHALLENGE_PHOTOS, all.size()));
+            // photos that already have a description go first: "find the photo" needs them
+            DescriptionCache descriptions = DescriptionStore.get(this).cache();
+            List<Photo> described = new ArrayList<>(), others = new ArrayList<>();
+            for (Photo p : all) {
+                Description d = descriptions.get(p.key());
+                (d != null && !d.labels.isEmpty() ? described : others).add(p);
+            }
+            final int describedCount = described.size();
+            List<Photo> ordered = new ArrayList<>(described);
+            ordered.addAll(others);
+            List<Photo> chosen = ordered.subList(0, Math.min(CHALLENGE_PHOTOS, ordered.size()));
             runOnUiThread(() -> {
                 if (isFinishing() || solved) return;
-                challenge = Challenges.create(alarm.challenge, all.size(), random);
+                challenge = Challenges.create(alarm.challenge, all.size(), describedCount, random);
                 View view = challenge.createView(this, new ArrayList<>(chosen), alarm.difficulty,
                         new AlarmChallenge.Listener() {
                             @Override public void onProgress(int done, int total) {

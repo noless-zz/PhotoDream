@@ -53,6 +53,25 @@ public class ChallengeChooserTest {
     }
 
     @Test
+    public void randomSkipsGamesThatNeedMoreDescribedPhotosThanThereAre() {
+        List<ChallengeChooser.Option> options = Arrays.asList(
+                new ChallengeChooser.Option("flip", 3), new ChallengeChooser.Option("find", 4, 4));
+        Random random = new Random(1);
+        for (int i = 0; i < 50; i++) {
+            assertEquals("flip", ChallengeChooser.choose(Alarm.CHALLENGE_RANDOM, options, 20, 2, random));
+        }
+        Set<String> seen = new HashSet<>();
+        for (int i = 0; i < 100; i++) seen.add(ChallengeChooser.choose(Alarm.CHALLENGE_RANDOM, options, 20, 10, random));
+        assertTrue(seen.contains("find") && seen.contains("flip"));
+    }
+
+    @Test
+    public void namedGameStillRunsWithoutEnoughDescriptions() {
+        List<ChallengeChooser.Option> options = Arrays.asList(new ChallengeChooser.Option("find", 4, 4));
+        assertEquals("find", ChallengeChooser.choose("find", options, 20, 0, new Random(1)));
+    }
+
+    @Test
     public void randomWithNothingRegisteredOrNoPhotosIsHold() {
         assertEquals(ChallengeChooser.HOLD, ChallengeChooser.choose(Alarm.CHALLENGE_RANDOM, new ArrayList<>(), 100, new Random(1)));
         assertEquals(ChallengeChooser.HOLD, ChallengeChooser.choose(Alarm.CHALLENGE_RANDOM, OPTIONS, 0, new Random(1)));
