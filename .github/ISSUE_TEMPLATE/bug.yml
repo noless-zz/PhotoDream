@@ -1,0 +1,23 @@
+name: Bug
+description: Something doesn't work
+labels: ["type: bug"]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+  - type: input
+    id: device
+    attributes:
+      label: Phone + Android version + PhotoDream version
+  - type: textarea
+    id: log
+    attributes:
+      label: Logcat (filter "photodream")
+      render: text

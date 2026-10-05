@@ -1,0 +1,30 @@
+name: Feature
+description: Something new for PhotoDream
+labels: ["type: feature"]
+body:
+  - type: textarea
+    id: goal
+    attributes:
+      label: Goal
+      description: What should the user be able to do, and why?
+    validations:
+      required: true
+  - type: textarea
+    id: behaviour
+    attributes:
+      label: Behaviour / UX
+      description: Screens, gestures, settings, defaults. Hebrew text needed?
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance criteria
+      description: Checklist that decides "done".
+      value: |
+        - [ ] …
+        - [ ] Strings in values/ and values-iw/
+        - [ ] Unit tests for pure logic; `./gradlew testDebugUnitTest lintRelease` passes
+  - type: textarea
+    id: notes
+    attributes:
+      label: Technical notes
+      description: Files to touch, APIs, pitfalls.

@@ -1,0 +1,42 @@
+# Build + unit tests + lint on every push to main and every pull request,
+# so changes (including PRs opened by Claude Code) get checked automatically.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+      - uses: gradle/actions/setup-gradle@v4
+      - name: Build, unit tests, lint
+        # no release key here: debug builds fall back to the debug key, release lint still runs
+        run: ./gradlew --no-daemon assembleDebug testDebugUnitTest lintRelease
+      - name: Upload reports on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: reports
+          path: |
+            app/build/reports/
+            app/build/test-results/
+      - name: Upload debug APK
+        if: github.event_name == 'pull_request'
+        uses: actions/upload-artifact@v4
+        with:
+          name: PhotoDream-debug-pr${{ github.event.number }}
+          path: app/build/outputs/apk/debug/app-debug.apk
+          retention-days: 14
