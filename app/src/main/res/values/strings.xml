@@ -60,6 +60,7 @@
     <string name="cloud_cancelled">Sign-in was cancelled</string>
     <string name="cloud_sign_in_again">Sign-in expired – please connect again</string>
     <string name="cloud_not_configured_title">One setup step first</string>
+    <string name="cloud_unsupported_skipped">(%1$d skipped: unsupported format)</string>
     <string name="cloud_choose_folder">Choose folder</string>
     <string name="cloud_no_folder">No folder chosen</string>
     <string name="cloud_subfolders">Include subfolders</string>

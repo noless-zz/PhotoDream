@@ -18,6 +18,8 @@ import java.util.Set;
  *  - photos already downloaded are kept (saves data); once the phone holds
  *    {@code target} photos, about {@code rotateFraction} of them are swapped
  *    for new random ones each sync, so the screensaver keeps changing
+ *  - ids in {@code excluded} (photos Android can't decode) are not candidates:
+ *    never downloaded and never counted toward the target
  *  - {@link Plan#gone} must be deleted right away; {@link Plan#delete} only
  *    after replacements were downloaded (an interrupted sync must not shrink
  *    the collection)
@@ -37,8 +39,14 @@ public final class SyncPlanner {
 
     public static Plan plan(List<String> remote, Set<String> cached, int target,
                             double rotateFraction, Random random) {
+        return plan(remote, cached, Collections.<String>emptySet(), target, rotateFraction, random);
+    }
+
+    public static Plan plan(List<String> remote, Set<String> cached, Set<String> excluded, int target,
+                            double rotateFraction, Random random) {
         Plan p = new Plan();
         Set<String> remoteSet = new HashSet<>(remote);
+        remoteSet.removeAll(excluded);
 
         // 1. cached photos that still exist in OneDrive, in random order
         List<String> stillThere = new ArrayList<>();

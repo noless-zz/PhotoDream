@@ -61,6 +61,7 @@
     <string name="cloud_cancelled">ההתחברות בוטלה</string>
     <string name="cloud_sign_in_again">פג תוקף ההתחברות – יש להתחבר מחדש</string>
     <string name="cloud_not_configured_title">צריך קודם שלב הגדרה אחד</string>
+    <string name="cloud_unsupported_skipped">(%1$d דולגו: פורמט לא נתמך)</string>
     <string name="cloud_choose_folder">בחירת תיקייה</string>
     <string name="cloud_no_folder">לא נבחרה תיקייה</string>
     <string name="cloud_subfolders">כולל תיקיות משנה</string>
