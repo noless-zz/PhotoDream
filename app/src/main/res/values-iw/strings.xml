@@ -227,4 +227,6 @@
     <string name="alarm_fix_battery">פתיחת הגדרות סוללה</string>
     <string name="challenge_flip">הופכים את כולן</string>
     <string name="flip_card">כרטיס תמונה %1$d</string>
+    <string name="challenge_runaway">תופסים את התמונה הבורחת</string>
+    <string name="runaway_card">תמונה בורחת</string>
 </resources>

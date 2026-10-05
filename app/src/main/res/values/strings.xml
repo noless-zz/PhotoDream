@@ -220,4 +220,6 @@
     <string name="alarm_fix_battery">Open battery settings</string>
     <string name="challenge_flip">Flip them all</string>
     <string name="flip_card">Photo card %1$d</string>
+    <string name="challenge_runaway">Catch the runaway photo</string>
+    <string name="runaway_card">Runaway photo</string>
 </resources>
