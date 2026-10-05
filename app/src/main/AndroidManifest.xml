@@ -97,6 +97,16 @@
             android:exported="false"
             android:parentActivityName=".SettingsActivity" />
 
+        <activity
+            android:name=".alarm.AlarmListActivity"
+            android:exported="false"
+            android:parentActivityName=".SettingsActivity" />
+        <activity
+            android:name=".alarm.AlarmEditActivity"
+            android:exported="false"
+            android:parentActivityName=".alarm.AlarmListActivity"
+            android:windowSoftInputMode="adjustResize" />
+
         <!-- First-run introduction -->
         <activity
             android:name=".WelcomeActivity"

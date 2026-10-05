@@ -7,6 +7,9 @@ import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.noam.photodream.alarm.Alarm;
+import com.noam.photodream.alarm.AlarmListActivity;
+import com.noam.photodream.alarm.AlarmStore;
 import com.noam.photodream.cloud.CloudProvider;
 import com.noam.photodream.cloud.CloudProviders;
 
@@ -35,11 +38,8 @@ public class SettingsActivity extends SettingsScreen {
         findViewById(R.id.cat_about).setOnClickListener(v ->
                 startActivity(new Intent(this, AboutActivity.class)));
 
-        // Wake-up alarms arrive in a later version; the row is a visible placeholder for now
-        View alarms = findViewById(R.id.cat_alarms);
-        alarms.setAlpha(0.6f);
-        alarms.setOnClickListener(v -> Toast.makeText(this, R.string.summary_alarms_soon, Toast.LENGTH_SHORT).show());
-        ((TextView) findViewById(R.id.sum_alarms)).setText(R.string.summary_alarms_soon);
+        findViewById(R.id.cat_alarms).setOnClickListener(v ->
+                startActivity(new Intent(this, AlarmListActivity.class)));
 
         findViewById(R.id.btn_preview).setOnClickListener(v ->
                 startActivity(new Intent(this, PreviewActivity.class)));
@@ -75,6 +75,12 @@ public class SettingsActivity extends SettingsScreen {
                 ? R.string.mode_table : R.string.mode_single);
         ((TextView) findViewById(R.id.sum_display)).setText(
                 getString(R.string.summary_display, mode, prefs.getIntervalSeconds()));
+
+        int alarmsOn = 0;
+        for (Alarm a : new AlarmStore(this).list()) if (a.enabled) alarmsOn++;
+        ((TextView) findViewById(R.id.sum_alarms)).setText(alarmsOn == 0
+                ? getString(R.string.summary_alarms_none)
+                : getResources().getQuantityString(R.plurals.summary_alarms_on, alarmsOn, alarmsOn));
 
         ((TextView) findViewById(R.id.sum_about)).setText(
                 getString(R.string.about_version, AboutActivity.versionName(this)));
