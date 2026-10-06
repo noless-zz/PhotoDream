@@ -42,7 +42,7 @@ jobs:
           fetch-depth: 1
 
       # Android toolchain so Claude can build, test and lint (the runner already has the Android SDK)
-      - uses: actions/setup-java@v4
+      - uses: actions/setup-java@v6
         with:
           distribution: temurin
           java-version: 21
