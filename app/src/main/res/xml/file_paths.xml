@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Files we hand to other apps through FileProvider: only the problem report. -->
+<paths>
+    <cache-path name="reports" path="reports/" />
+</paths>

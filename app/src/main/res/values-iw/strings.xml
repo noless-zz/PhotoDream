@@ -4,10 +4,28 @@
     <string name="dream_label">מצגת PhotoDream</string>
 
     <string name="section_photos">תמונות</string>
-    <string name="choose_folder">בחירת תיקיית תמונות</string>
+    <string name="add_folder">הוספת תיקיית תמונות</string>
+    <string name="folder_row">%1$s · %2$d</string>
     <string name="no_folder">עדיין לא נבחרה תיקייה</string>
+    <string name="count_with_sources">%1$s\n%2$s</string>
+    <string name="frame_color">צבע מסגרת</string>
+    <string name="frame_white">לבן קלאסי</string>
+    <string name="frame_cream">שמנת</string>
+    <string name="frame_black">שחור</string>
+    <string name="frame_blue">כחול</string>
+    <string name="frame_green">ירוק</string>
+    <string name="frame_amber">ענבר</string>
+    <string name="frame_coral">אלמוג</string>
+    <string name="frame_purple">סגול</string>
+    <string name="frame_teal">טורקיז</string>
+    <string name="swatch_selected">%1$s, נבחר</string>
+    <string name="source_strip">הצג צבע מקור גם במצב תמונה אחת</string>
+    <string name="source_show">הצג במצגת</string>
+    <string name="source_hidden">מוסתר</string>
+    <string name="source_phone">טלפון</string>
+    <string name="remove_folder_named">הסרת התיקייה %1$s</string>
+    <string name="folder_already_added">התיקייה הזו כבר נוספה</string>
     <string name="counting">סופר תמונות…</string>
-    <string name="photo_count">נמצאו %1$d תמונות</string>
 
     <string name="section_slideshow">מצגת</string>
     <string name="interval_label">שניות לכל תמונה: %1$d</string>
@@ -20,7 +38,6 @@
     <string name="show_clock">הצגת שעון</string>
     <string name="dim">עמעום המסך (מתאים ליד המיטה)</string>
 
-    <string name="section_run">הפעלה</string>
     <string name="preview">תצוגה מקדימה</string>
     <string name="open_system_settings">פתיחת הגדרות שומר המסך</string>
     <string name="system_hint">בהגדרות המערכת יש לבחור ב״מצגת PhotoDream״ ולקבוע ״מתי להתחיל״ ל״בזמן טעינה״. בסמסונג ייתכן שיהיה צורך לכבות את Always On Display.</string>
@@ -28,7 +45,7 @@
     <string name="msg_no_photos">עדיין אין תמונות.\nיש לפתוח את PhotoDream ולבחור תיקייה.</string>
     <string name="msg_paused">מושהה</string>
     <string name="msg_playing">מתנגן</string>
-    <string name="gesture_hint">החלקה = הבאה/הקודמת · הקשה = השהיה · לחיצה ארוכה = יציאה</string>
+    <string name="gesture_hint">החלקה = הבאה/הקודמת · הקשה = השהיה · הקשה כפולה או לחיצה ארוכה = יציאה</string>
 
     <string name="section_mode">מצב תצוגה</string>
     <string name="mode_single">תמונה אחת בכל פעם</string>
@@ -41,11 +58,10 @@
     <string name="entry_pop">קופצות</string>
     <string name="entry_fade">מופיעות בעמעום</string>
     <string name="entry_random">שילוב אקראי</string>
-    <string name="max_cards_label">תמונות על השולחן: %1$d</string>
     <string name="card_size_label">גודל תמונה: %1$d%%</string>
     <string name="rotation_label">הטיה מרבית: %1$d°</string>
     <string name="drift">תנועה איטית מרחפת</string>
-    <string name="table_gestures">גרירת תמונה מזיזה אותה · הטלה מהירה זורקת אותה · לחיצה ארוכה על שולחן ריק (או ״חזרה״) ליציאה</string>
+    <string name="table_gestures">גרירת תמונה מזיזה אותה · הטלה מהירה זורקת אותה · הקשה כפולה על תמונה מגדילה אותה, והקשה כפולה נוספת מחזירה · הקשה כפולה על שולחן ריק (או לחיצה ארוכה, או ״חזרה״) ליציאה</string>
 
     <!-- ענן -->
     <string name="cloud_not_connected">לא מחובר</string>
@@ -60,12 +76,10 @@
     <string name="cloud_choose_folder">בחירת תיקייה</string>
     <string name="cloud_no_folder">לא נבחרה תיקייה</string>
     <string name="cloud_subfolders">כולל תיקיות משנה</string>
-    <string name="cloud_max_photos">תמונות לשמירה בטלפון: %1$d</string>
     <string name="cloud_wifi_charging">סנכרון רק ב־Wi-Fi ובזמן טעינה</string>
     <string name="cloud_sync_now">סנכרון עכשיו</string>
     <string name="cloud_sync_started">מסנכרן ברקע…</string>
     <string name="cloud_syncing">מסנכרן…</string>
-    <string name="cloud_syncing_progress">מסנכרן… %1$d מתוך %2$d תמונות</string>
     <string name="cloud_waiting">ממתין לאינטרנט…</string>
     <string name="cloud_last_sync">סנכרון אחרון: %1$s</string>
     <string name="cloud_never_synced">עדיין לא סונכרן</string>
@@ -74,7 +88,6 @@
     <string name="cloud_root">הקבצים שלי</string>
     <string name="cloud_up">למעלה</string>
     <string name="cloud_use_folder">שימוש בתיקייה הזו</string>
-    <string name="cloud_images_here">%1$d תמונות ישירות בתיקייה הזו</string>
     <string name="cloud_error">הטעינה נכשלה: %1$s</string>
     <string name="cloud_channel">סנכרון תמונות</string>
     <string name="cloud_notification_title">מסנכרן תמונות מ־%1$s</string>
@@ -100,7 +113,167 @@
     <string name="welcome_step2_title">2 · מפעילים את שומר המסך</string>
     <string name="welcome_step2_text">בהגדרות שומר המסך של המערכת בוחרים ב״מצגת PhotoDream״ וקובעים שיתחיל בזמן טעינה. בסמסונג: הגדרות › תצוגה › שומר מסך. אם לא מופיע כלום, כדאי לכבות את Always On Display.</string>
     <string name="welcome_step3_title">3 · מטעינים ונהנים</string>
-    <string name="welcome_step3_text">מניחים את הטלפון בטעינה ונותנים למסך לכבות. החלקה מחליפה תמונה, בשולחן התמונות אפשר לגרור אותן, ולחיצה ארוכה יוצאת – מסך הנעילה נשאר מוגן.</string>
+    <string name="welcome_step3_text">מניחים את הטלפון בטעינה ונותנים למסך לכבות. החלקה מחליפה תמונה, בשולחן התמונות אפשר לגרור אותן, הקשה כפולה על תמונה מגדילה אותה, והקשה כפולה על שולחן ריק יוצאת – מסך הנעילה נשאר מוגן.</string>
     <string name="welcome_start">מתחילים</string>
     <string name="show_intro">הצגת ההסבר</string>
+
+    <!-- ספירות: צורות רבים בעברית -->
+    <plurals name="photo_count">
+        <item quantity="one">נמצאה תמונה אחת</item>
+        <item quantity="two">נמצאו %1$d תמונות</item>
+        <item quantity="other">נמצאו %1$d תמונות</item>
+    </plurals>
+    <plurals name="max_cards_label">
+        <item quantity="one">תמונה אחת על השולחן</item>
+        <item quantity="two">תמונות על השולחן: %1$d</item>
+        <item quantity="other">תמונות על השולחן: %1$d</item>
+    </plurals>
+    <plurals name="cloud_max_photos">
+        <item quantity="one">תמונה אחת לשמירה בטלפון</item>
+        <item quantity="two">תמונות לשמירה בטלפון: %1$d</item>
+        <item quantity="other">תמונות לשמירה בטלפון: %1$d</item>
+    </plurals>
+    <plurals name="cloud_images_here">
+        <item quantity="one">תמונה אחת ישירות בתיקייה הזו</item>
+        <item quantity="two">%1$d תמונות ישירות בתיקייה הזו</item>
+        <item quantity="other">%1$d תמונות ישירות בתיקייה הזו</item>
+    </plurals>
+    <plurals name="cloud_syncing_progress">
+        <item quantity="one">מסנכרן… %1$d מתוך תמונה אחת</item>
+        <item quantity="two">מסנכרן… %1$d מתוך %2$d תמונות</item>
+        <item quantity="other">מסנכרן… %1$d מתוך %2$d תמונות</item>
+    </plurals>
+    <plurals name="cloud_unsupported_skipped">
+        <item quantity="one">(תמונה אחת דולגה: פורמט לא נתמך)</item>
+        <item quantity="two">(%1$d דולגו: פורמט לא נתמך)</item>
+        <item quantity="other">(%1$d דולגו: פורמט לא נתמך)</item>
+    </plurals>
+    <string name="settings_display">תצוגה</string>
+    <string name="settings_alarms">שעוני מעורר</string>
+    <string name="settings_about">אודות</string>
+    <string name="summary_photos_none">עדיין לא חוברו תמונות</string>
+    <string name="summary_display">%1$s · %2$d שנ׳ לתמונה</string>
+    <string name="about_version">גרסה %1$s</string>
+    <string name="about_guide">מדריך לתלמידים</string>
+    <string name="about_repo">PhotoDream ב־GitHub</string>
+    <string name="about_privacy">התמונות שלך נשארות בטלפון. PhotoDream מתחבר ל־OneDrive או ל־Google Drive רק כדי להוריד את התיקייה שבחרת, ולא מעלה שום דבר.</string>
+    <string name="about_no_browser">לא נמצא דפדפן לפתיחת הקישור</string>
+    <plurals name="summary_phone_folders">
+        <item quantity="one">תיקייה אחת בטלפון</item>
+        <item quantity="two">%1$d תיקיות בטלפון</item>
+        <item quantity="other">%1$d תיקיות בטלפון</item>
+    </plurals>
+    <string name="about_report">שליחת דוח תקלה</string>
+    <string name="about_report_hint">יוצר קובץ טקסט עם פרטים טכניים (בלי תמונות ובלי נתוני התחברות) שאפשר לשלוח למורה.</string>
+    <string name="report_subject">דוח תקלה של PhotoDream</string>
+    <string name="report_preparing">מכין דוח…</string>
+    <string name="report_failed">לא ניתן היה ליצור את הדוח</string>
+    <string name="alarm_channel">שעוני מעורר</string>
+    <string name="alarm_ringing">שעון מעורר</string>
+    <string name="alarm_tap_to_open">לחצו לפתיחה</string>
+    <string name="alarm_hold_to_stop">החזיקו לעצירה</string>
+    <string name="alarm_progress">%1$d / %2$d</string>
+    <string name="alarm_snooze">נודניק %1$d דק׳ (נותרו: %2$d)</string>
+    <string name="alarm_cant_solve">לא מצליחים?</string>
+    <string name="alarm_type_code">הקלידו את הקוד כדי לעצור את השעון:</string>
+    <string name="alarm_code_hint">קוד</string>
+    <string name="alarm_code_wrong">קוד שגוי</string>
+    <string name="alarm_good_morning">בוקר טוב!</string>
+    <string name="alarm_missed_channel">שעונים שהוחמצו</string>
+    <string name="alarm_missed">שעון מעורר שהוחמץ</string>
+    <string name="alarm_missed_text">שעון %1$s צלצל 15 דקות ונעצר מעצמו.</string>
+    <string name="summary_alarms_none">אין עדיין שעונים</string>
+    <plurals name="summary_alarms_on">
+        <item quantity="one">שעון אחד פעיל</item>
+        <item quantity="two">%1$d שעונים פעילים</item>
+        <item quantity="other">%1$d שעונים פעילים</item>
+    </plurals>
+    <string name="alarm_add">הוספת שעון</string>
+    <string name="alarm_empty">מתעוררים עם התמונות שלכם: כדי לכבות את השעון צריך לשחק איתן משחק קצר.</string>
+    <string name="alarm_new">שעון חדש</string>
+    <string name="alarm_edit">עריכת שעון</string>
+    <string name="alarm_time">שעת השעון</string>
+    <string name="alarm_days">חוזר בימים</string>
+    <string name="alarm_once">פעם אחת</string>
+    <string name="alarm_once_hint">מצלצל פעם אחת, בפעם הקרובה שהשעה הזו מגיעה.</string>
+    <string name="alarm_every_day">כל יום</string>
+    <string name="alarm_label">שם (לא חובה)</string>
+    <string name="alarm_challenge">אתגר</string>
+    <string name="challenge_random">אקראי</string>
+    <string name="alarm_difficulty">רמת קושי</string>
+    <string name="difficulty_easy">קל</string>
+    <string name="difficulty_medium">בינוני</string>
+    <string name="difficulty_hard">קשה</string>
+    <string name="alarm_sound">צליל</string>
+    <string name="alarm_sound_default">צליל השעון המוגדר</string>
+    <string name="alarm_vibrate">רטט</string>
+    <string name="alarm_snooze_label">נודניק: %1$d דק׳</string>
+    <string name="alarm_save">שמירה</string>
+    <string name="alarm_test_now">בדיקה עכשיו</string>
+    <string name="alarm_delete">מחיקה</string>
+    <string name="alarm_delete_confirm">למחוק את השעון הזה?</string>
+    <string name="alarm_on_off">הפעלה או כיבוי של שעון %1$s</string>
+    <string name="alarm_in_less_than_minute">השעון יצלצל בעוד פחות מדקה</string>
+    <string name="alarm_in_minutes">השעון יצלצל בעוד %1$d דק׳</string>
+    <string name="alarm_in_hours_minutes">השעון יצלצל בעוד %1$d שע׳ ו־%2$d דק׳</string>
+    <string name="alarm_in_days_hours_minutes">השעון יצלצל בעוד %1$d ימ׳, %2$d שע׳ ו־%3$d דק׳</string>
+    <string name="alarm_warn_exact">אנדרואיד לא מאפשר ל־PhotoDream שעונים מדויקים, ולכן שעון עלול לצלצל באיחור או בכלל לא.</string>
+    <string name="alarm_fix_exact">אישור שעונים מדויקים</string>
+    <string name="alarm_warn_fullscreen">התראות במסך מלא כבויות: השעון יציג רק הודעה במסך הנעילה.</string>
+    <string name="alarm_fix_fullscreen">אישור התראות במסך מלא</string>
+    <string name="alarm_warn_notifications">ההתראות של PhotoDream כבויות. מסך השעון עלול לא להופיע.</string>
+    <string name="alarm_fix_notifications">פתיחת הגדרות התראות</string>
+    <string name="alarm_warn_battery">חיסכון בסוללה עלול לעצור את PhotoDream לפני שהשעון מצלצל.</string>
+    <string name="alarm_fix_battery">פתיחת הגדרות סוללה</string>
+    <string name="challenge_flip">הופכים את כולן</string>
+    <string name="flip_card">כרטיס תמונה %1$d</string>
+    <string name="challenge_runaway">תופסים את התמונה הבורחת</string>
+    <string name="runaway_card">תמונה בורחת</string>
+    <string name="challenge_memory">זוגות זיכרון</string>
+    <string name="update_available">גרסה חדשה של PhotoDream זמינה: %1$s</string>
+    <string name="update_download">הורדה</string>
+    <string name="section_night">מצב לילה</string>
+    <string name="night_enable">עמעום המסך בלילה</string>
+    <string name="night_from">מ־%1$s</string>
+    <string name="night_to">עד %1$s</string>
+    <string name="night_dim_warm">עמעום וגוון חם (התמונות מתחלפות בחצי מהמהירות)</string>
+    <string name="night_clock_only">שעון בלבד (מסך שחור)</string>
+    <string name="photo_favorite">מועדפת</string>
+    <string name="photo_hide">הסתרת התמונה</string>
+    <string name="photo_hidden_undo">התמונה הוסתרה · ביטול</string>
+    <string name="marks_favorites">תמונות מועדפות: %1$d</string>
+    <string name="marks_hidden">תמונות מוסתרות: %1$d</string>
+    <string name="marks_clear">ניקוי</string>
+    <string name="marks_show_again">הצגה מחדש</string>
+    <string name="cloud_my_files">הקבצים שלי</string>
+    <string name="cloud_shared_with_me">שותף איתי</string>
+    <string name="widget_label">תמונה מ־PhotoDream</string>
+    <string name="widget_description">תמונה אקראית מהתיקיות והענן שלך, מתחלפת כל חצי שעה. הקשה פותחת תצוגה מקדימה.</string>
+    <string name="widget_empty">פתחו את PhotoDream ובחרו תמונות</string>
+    <string name="widget_image_description">תמונה אקראית</string>
+    <string name="show_photo_date">הצגת תאריך התמונה</string>
+    <string name="on_this_day_setting">להציג לעיתים קרובות יותר תמונות מהיום הזה בשנים קודמות</string>
+    <string name="on_this_day">ביום הזה</string>
+    <string name="photo_date_caption">%1$s · %2$s</string>
+    <plurals name="years_ago">
+        <item quantity="one">לפני שנה</item>
+        <item quantity="two">לפני שנתיים</item>
+        <item quantity="other">לפני %1$d שנים</item>
+    </plurals>
+    <string name="describe_title">תיאורי תמונות</string>
+    <string name="describe_status">תמונות שתוארו: %1$d / %2$d · %3$s</string>
+    <string name="describe_engine_labels">תגיות בלבד (בטלפון הזה אין מודל בינה מלאכותית מקומי)</string>
+    <string name="describe_engine_sentences">תגיות ומשפטים (Gemini Nano)</string>
+    <string name="describe_engine_downloadable">תגיות בלבד – אפשר להוריד את Gemini Nano</string>
+    <string name="describe_hebrew">תיאורים בעברית</string>
+    <string name="describe_prepare">הכנת תיאורים</string>
+    <string name="describe_cancel">עצירה</string>
+    <string name="describe_working">מתאר תמונות…</string>
+    <string name="describe_downloading">מוריד את מודל הבינה המלאכותית…</string>
+    <string name="describe_progress">מתאר תמונות… %1$d / %2$d</string>
+    <string name="describe_hint">התיאורים נוצרים בטלפון עצמו, ואף תמונה לא יוצאת ממנו. תגיות מתווספות ברקע בזמן טעינה. משפטים דורשים טלפון חדש יותר ומסך דולק – לוחצים על הכפתור ומשאירים את האפליקציה פתוחה. חבילת השפה העברית מורדת פעם אחת, ב־Wi‑Fi.</string>
+    <string name="challenge_find">מוצאים את התמונה המתוארת</string>
+    <string name="find_prompt_sentence">מצאו את התמונה: ״%1$s״</string>
+    <string name="find_prompt_labels">מצאו את התמונה עם: %1$s</string>
+    <string name="find_fallback">אין עדיין מספיק תמונות מתוארות – משחקים „הופכים את כולן” במקום.</string>
 </resources>

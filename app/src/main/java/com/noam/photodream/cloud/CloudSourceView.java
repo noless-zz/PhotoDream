@@ -16,7 +16,9 @@ import androidx.work.WorkManager;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.materialswitch.MaterialSwitch;
+import com.noam.photodream.Prefs;
 import com.noam.photodream.R;
+import com.noam.photodream.SwatchPicker;
 
 import java.util.List;
 
@@ -92,6 +94,18 @@ public class CloudSourceView extends LinearLayout {
             activity.startActivity(CloudFolderActivity.intent(activity, p));
         });
 
+        // "Show in slideshow": hiding keeps the sync running, so turning it back on is instant
+        MaterialSwitch show = findViewById(R.id.cs_show);
+        show.setChecked(new Prefs(activity).isSourceEnabled(p.id()));
+        show.setOnCheckedChangeListener((b, on) -> {
+            new Prefs(activity).setSourceEnabled(p.id(), on);
+            host.onPhotosChanged();
+        });
+
+        SwatchPicker frame = findViewById(R.id.cs_frame);
+        frame.setSelected(new Prefs(activity).getFrameColor(p.id()));
+        frame.setOnPick(id -> new Prefs(activity).setFrameColor(p.id(), id));
+
         MaterialSwitch subfolders = findViewById(R.id.cs_subfolders);
         subfolders.setChecked(prefs.isIncludeSubfolders());
         subfolders.setOnCheckedChangeListener((b, on) -> prefs.setIncludeSubfolders(on));
@@ -106,11 +120,13 @@ public class CloudSourceView extends LinearLayout {
         // photos to keep: 50..1000 in steps of 50
         SeekBar max = findViewById(R.id.cs_max);
         max.setProgress(Math.max(0, Math.min(19, prefs.getMaxPhotos() / STEP - 1)));
-        maxLabel.setText(activity.getString(R.string.cloud_max_photos, prefs.getMaxPhotos()));
+        maxLabel.setText(activity.getResources().getQuantityString(R.plurals.cloud_max_photos, prefs.getMaxPhotos(), prefs.getMaxPhotos()));
+        max.setContentDescription(maxLabel.getText());   // TalkBack reads the label with the slider
         max.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override public void onProgressChanged(SeekBar s, int progress, boolean fromUser) {
                 int n = (progress + 1) * STEP;
-                maxLabel.setText(activity.getString(R.string.cloud_max_photos, n));
+                maxLabel.setText(activity.getResources().getQuantityString(R.plurals.cloud_max_photos, n, n));
+                s.setContentDescription(maxLabel.getText());
                 prefs.setMaxPhotos(n);
             }
             @Override public void onStartTrackingTouch(SeekBar s) { }
@@ -138,7 +154,7 @@ public class CloudSourceView extends LinearLayout {
         if (state == WorkInfo.State.RUNNING) {
             int done = info.getProgress().getInt(CloudSyncWorker.PROGRESS_DONE, 0);
             int total = info.getProgress().getInt(CloudSyncWorker.PROGRESS_TOTAL, 0);
-            lastSync.setText(total > 0 ? c.getString(R.string.cloud_syncing_progress, done, total)
+            lastSync.setText(total > 0 ? c.getResources().getQuantityString(R.plurals.cloud_syncing_progress, total, done, total)
                     : c.getString(R.string.cloud_syncing));
         } else if (state == WorkInfo.State.ENQUEUED) {
             lastSync.setText(R.string.cloud_waiting);

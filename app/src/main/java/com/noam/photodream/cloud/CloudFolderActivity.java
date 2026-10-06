@@ -35,6 +35,8 @@ public class CloudFolderActivity extends AppCompatActivity {
     }
 
     private static final String EXTRA_PROVIDER = "provider";
+    /** The first screen: two entries, "My files" and "Shared with me" (no network needed). */
+    private static final String TOP = "@top";
 
     public static Intent intent(Context context, CloudProvider provider) {
         return new Intent(context, CloudFolderActivity.class).putExtra(EXTRA_PROVIDER, provider.id());
@@ -78,7 +80,7 @@ public class CloudFolderActivity extends AppCompatActivity {
             }
         });
 
-        path.push(new Level(provider.rootId(), getString(R.string.cloud_root)));
+        path.push(new Level(TOP, getString(R.string.cloud_root)));
         load();
     }
 
@@ -97,17 +99,23 @@ public class CloudFolderActivity extends AppCompatActivity {
 
     private void useCurrent() {
         Level here = path.peek();
-        if (here == null) return;
+        if (here == null || isVirtual(here)) return;
         new CloudPrefs(this, provider).setFolder(here.id, pathText());
         CloudScheduler.syncNow(this, provider);   // also sets up the regular sync when done
         Toast.makeText(this, R.string.cloud_sync_started, Toast.LENGTH_SHORT).show();
         finish();
     }
 
+    /** The top screen and the "Shared with me" list are not real folders: you can't choose them. */
+    private static boolean isVirtual(Level l) {
+        return TOP.equals(l.id) || CloudProvider.SHARED_WITH_ME.equals(l.id);
+    }
+
     private String pathText() {
         StringBuilder sb = new StringBuilder();
         List<Level> levels = new ArrayList<>(path);
         for (int i = levels.size() - 1; i >= 0; i--) {
+            if (TOP.equals(levels.get(i).id)) continue;             // the cloud's name is already the screen title
             if (sb.length() > 0) sb.append(" / ");
             sb.append(levels.get(i).name);
         }
@@ -124,6 +132,16 @@ public class CloudFolderActivity extends AppCompatActivity {
         folders.clear();
         adapter.clear();
         findViewById(R.id.btn_up).setEnabled(path.size() > 1);
+        findViewById(R.id.btn_use).setEnabled(!isVirtual(here));
+
+        if (TOP.equals(here.id)) {
+            // two fixed entries; nothing to download yet
+            progress.setVisibility(View.GONE);
+            folders.add(new CloudItem(provider.rootId(), getString(R.string.cloud_my_files), true, false, -1));
+            folders.add(new CloudItem(CloudProvider.SHARED_WITH_ME, getString(R.string.cloud_shared_with_me), true, false, -1));
+            for (CloudItem d : folders) adapter.add("📁  " + d.name);
+            return;
+        }
 
         io.execute(() -> {
             try {
@@ -143,7 +161,7 @@ public class CloudFolderActivity extends AppCompatActivity {
                     for (CloudItem d : dirs) {
                         adapter.add("📁  " + d.name + (d.childCount >= 0 ? "   (" + d.childCount + ")" : ""));
                     }
-                    txtImagesHere.setText(getString(R.string.cloud_images_here, imageCount));
+                    txtImagesHere.setText(getResources().getQuantityString(R.plurals.cloud_images_here, imageCount, imageCount));
                 });
             } catch (IOException e) {
                 runOnUiThread(() -> {

@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Android 12+: what goes into cloud backup and device-to-device transfer.
+     Normal settings (photodream.xml, cloud folder choices) are kept. Sign-in
+     data and the downloaded photo cache are NOT: tokens are encrypted with a
+     key that doesn't survive a restore anyway, and photos are re-synced. -->
+<data-extraction-rules>
+    <cloud-backup>
+        <exclude domain="sharedpref" path="onedrive_secure.xml" />
+        <exclude domain="sharedpref" path="onedrive_pending.xml" />
+        <exclude domain="sharedpref" path="gdrive_account.xml" />
+        <exclude domain="file" path="photo_cache/" />
+    </cloud-backup>
+    <device-transfer>
+        <exclude domain="sharedpref" path="onedrive_secure.xml" />
+        <exclude domain="sharedpref" path="onedrive_pending.xml" />
+        <exclude domain="sharedpref" path="gdrive_account.xml" />
+        <exclude domain="file" path="photo_cache/" />
+    </device-transfer>
+</data-extraction-rules>

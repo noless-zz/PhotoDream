@@ -1,52 +1,29 @@
 package com.noam.photodream;
 
-import android.Manifest;
 import android.content.Intent;
-import android.content.pm.PackageManager;
-import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
-import android.os.PowerManager;
-import android.provider.DocumentsContract;
 import android.provider.Settings;
 import android.view.View;
-import android.widget.Button;
-import android.widget.RadioGroup;
-import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.activity.result.ActivityResultLauncher;
-import androidx.activity.result.IntentSenderRequest;
-import androidx.activity.result.contract.ActivityResultContracts;
-import androidx.appcompat.app.AppCompatActivity;
-
-
-import com.google.android.material.materialswitch.MaterialSwitch;
+import com.noam.photodream.alarm.Alarm;
+import com.noam.photodream.alarm.AlarmListActivity;
+import com.noam.photodream.alarm.AlarmStore;
 import com.noam.photodream.cloud.CloudProvider;
 import com.noam.photodream.cloud.CloudProviders;
-import com.noam.photodream.cloud.CloudSourceView;
 
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.ArrayList;
+import java.util.List;
 
-/** Launcher screen: choose photos and tune the slideshow. */
-public class SettingsActivity extends AppCompatActivity {
+/**
+ * Launcher screen: a short list of categories (Photos, Display, Wake-up alarms, About),
+ * each opening its own screen, plus the two buttons you need most: Preview and the
+ * system screen-saver settings.
+ */
+public class SettingsActivity extends SettingsScreen {
 
-    private static final int MIN_INTERVAL = 5;
-
-    private Prefs prefs;
-    private TextView txtFolder, txtCount, txtInterval;
-    private final ExecutorService io = Executors.newSingleThreadExecutor();
-
-    /** System folder picker. We keep read access permanently so the screensaver can use it later. */
-    private final ActivityResultLauncher<Uri> pickFolder =
-            registerForActivityResult(new ActivityResultContracts.OpenDocumentTree(), uri -> {
-                if (uri == null) return;
-                getContentResolver().takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
-                prefs.setLocalFolder(uri);
-                refreshFolderInfo();
-            });
+    private final java.util.concurrent.ExecutorService io = java.util.concurrent.Executors.newSingleThreadExecutor();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -55,33 +32,24 @@ public class SettingsActivity extends AppCompatActivity {
         if (savedInstanceState == null && WelcomeActivity.shouldShow(this)) {
             startActivity(new Intent(this, WelcomeActivity.class));
         }
-        findViewById(R.id.btn_show_intro).setOnClickListener(v ->
-                startActivity(new Intent(this, WelcomeActivity.class)));
-        prefs = new Prefs(this);
 
-        txtFolder = findViewById(R.id.txt_folder);
-        txtCount = findViewById(R.id.txt_count);
-        txtInterval = findViewById(R.id.txt_interval);
+        findViewById(R.id.btn_update).setOnClickListener(v -> {
+            try {
+                startActivity(new Intent(Intent.ACTION_VIEW, android.net.Uri.parse(UpdateChecker.DOWNLOAD_URL)));
+            } catch (RuntimeException e) {
+                Toast.makeText(this, R.string.about_no_browser, Toast.LENGTH_LONG).show();
+            }
+        });
 
-        Button choose = findViewById(R.id.btn_choose_folder);
-        choose.setOnClickListener(v -> pickFolder.launch(prefs.getLocalFolder()));
+        findViewById(R.id.cat_photos).setOnClickListener(v ->
+                startActivity(new Intent(this, PhotosSettingsActivity.class)));
+        findViewById(R.id.cat_display).setOnClickListener(v ->
+                startActivity(new Intent(this, DisplaySettingsActivity.class)));
+        findViewById(R.id.cat_about).setOnClickListener(v ->
+                startActivity(new Intent(this, AboutActivity.class)));
 
-        setupClouds();
-        setupMode();
-        setupInterval();
-        setupTransition();
-        setupEntry();
-        setupSeek(R.id.seek_max_cards, R.id.txt_max_cards, R.string.max_cards_label,
-                3, 20, prefs.getTableMaxCards(), prefs::setTableMaxCards);
-        setupSeek(R.id.seek_card_size, R.id.txt_card_size, R.string.card_size_label,
-                30, 80, prefs.getTableCardSize(), prefs::setTableCardSize);
-        setupSeek(R.id.seek_rotation, R.id.txt_rotation, R.string.rotation_label,
-                0, 30, prefs.getTableRotation(), prefs::setTableRotation);
-        setupSwitch(R.id.sw_drift, prefs.isTableDrift(), prefs::setTableDrift);
-        setupSwitch(R.id.sw_shuffle, prefs.isShuffle(), prefs::setShuffle);
-        setupSwitch(R.id.sw_crop, prefs.isCrop(), prefs::setCrop);
-        setupSwitch(R.id.sw_clock, prefs.isShowClock(), prefs::setShowClock);
-        setupSwitch(R.id.sw_dim, prefs.isDim(), prefs::setDim);
+        findViewById(R.id.cat_alarms).setOnClickListener(v ->
+                startActivity(new Intent(this, AlarmListActivity.class)));
 
         findViewById(R.id.btn_preview).setOnClickListener(v ->
                 startActivity(new Intent(this, PreviewActivity.class)));
@@ -99,80 +67,13 @@ public class SettingsActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        refreshFolderInfo();
-        refreshClouds();
-    }
-
-    // ---------------------------------------------------------------- clouds
-
-    private CloudSourceView oneDriveView, googleDriveView;
-    private CloudProvider pendingConnect;   // waiting for Google's sign-in screen
-
-    /** Google Play services screens (account picker, consent) return here. */
-    private final ActivityResultLauncher<IntentSenderRequest> cloudResolution =
-            registerForActivityResult(new ActivityResultContracts.StartIntentSenderForResult(), r -> {
-                if (pendingConnect == null) return;
-                CloudProvider p = pendingConnect;
-                pendingConnect = null;
-                p.onResolutionResult(this, r.getResultCode(), r.getData(), err -> onConnected(p, err));
-            });
-
-    private void setupClouds() {
-        CloudSourceView.Host host = new CloudSourceView.Host() {
-            @Override public void connect(CloudProvider p) {
-                pendingConnect = p;
-                p.connect(SettingsActivity.this, cloudResolution, err -> onConnected(p, err));
-            }
-            @Override public void onSyncRequested() { askNotificationPermission(); }
-            @Override public void onPhotosChanged() { refreshFolderInfo(); }
-        };
-        oneDriveView = findViewById(R.id.source_onedrive);
-        oneDriveView.bind(this, CloudProviders.ONEDRIVE, host);
-        googleDriveView = findViewById(R.id.source_gdrive);
-        googleDriveView.bind(this, CloudProviders.GOOGLE_DRIVE, host);
-
-        // Ask Android/Samsung not to restrict our background internet (battery optimisation)
-        findViewById(R.id.btn_battery).setOnClickListener(v -> {
-            Intent i = new Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS,
-                    Uri.parse("package:" + getPackageName()));
-            try {
-                startActivity(i);
-            } catch (Exception e) {
-                startActivity(new Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS));
-            }
+        refreshSummaries();
+        showUpdateBanner();
+        // at most once a day: ask GitHub in the background, then show the banner if there is news
+        io.execute(() -> {
+            UpdateChecker.checkIfDue(this);
+            runOnUiThread(this::showUpdateBanner);
         });
-    }
-
-    private void onConnected(CloudProvider p, String error) {
-        pendingConnect = null;
-        String msg = error == null
-                ? getString(R.string.cloud_connected_as, p.accountName(this))
-                : getString(R.string.cloud_connect_failed, p.displayName(this), error);
-        Toast.makeText(this, msg, Toast.LENGTH_LONG).show();
-        refreshClouds();
-    }
-
-    private void refreshClouds() {
-        oneDriveView.refresh();
-        googleDriveView.refresh();
-        boolean anyConnected = false;
-        for (CloudProvider p : CloudProviders.all()) anyConnected |= p.isSignedIn(this);
-        boolean unrestricted = getSystemService(PowerManager.class)
-                .isIgnoringBatteryOptimizations(getPackageName());
-        int vis = anyConnected && !unrestricted ? View.VISIBLE : View.GONE;
-        findViewById(R.id.btn_battery).setVisibility(vis);
-        findViewById(R.id.txt_battery_hint).setVisibility(vis);
-    }
-
-    private final ActivityResultLauncher<String> notificationPermission =
-            registerForActivityResult(new ActivityResultContracts.RequestPermission(), granted -> { });
-
-    /** The sync progress notification needs this on Android 13+ (sync works without it). */
-    private void askNotificationPermission() {
-        if (Build.VERSION.SDK_INT >= 33
-                && checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
-            notificationPermission.launch(Manifest.permission.POST_NOTIFICATIONS);
-        }
     }
 
     @Override
@@ -181,115 +82,38 @@ public class SettingsActivity extends AppCompatActivity {
         super.onDestroy();
     }
 
-    private void refreshFolderInfo() {
-        Uri folder = prefs.getLocalFolder();
-        if (folder == null) {
-            txtFolder.setText(R.string.no_folder);
-        } else {
-            // "primary:DCIM/Camera" -> "DCIM/Camera"
-            String id = DocumentsContract.getTreeDocumentId(folder);
-            txtFolder.setText(id.contains(":") ? id.substring(id.indexOf(':') + 1) : id);
+    private void showUpdateBanner() {
+        String version = UpdateChecker.availableVersion(this);
+        View banner = findViewById(R.id.banner_update);
+        banner.setVisibility(version == null ? View.GONE : View.VISIBLE);
+        if (version != null) {
+            ((TextView) findViewById(R.id.txt_update)).setText(getString(R.string.update_available, version));
         }
-        txtCount.setText(R.string.counting);
-        io.execute(() -> {
-            int n = PhotoRepository.loadAll(this).size();
-            runOnUiThread(() -> txtCount.setText(getString(R.string.photo_count, n)));
-        });
     }
 
-    private void setupInterval() {
-        SeekBar seek = findViewById(R.id.seek_interval);
-        seek.setProgress(prefs.getIntervalSeconds() - MIN_INTERVAL);
-        txtInterval.setText(getString(R.string.interval_label, prefs.getIntervalSeconds()));
-        seek.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
-            @Override public void onProgressChanged(SeekBar s, int progress, boolean fromUser) {
-                int sec = progress + MIN_INTERVAL;
-                txtInterval.setText(getString(R.string.interval_label, sec));
-                prefs.setIntervalSeconds(sec);
-            }
-            @Override public void onStartTrackingTouch(SeekBar s) { }
-            @Override public void onStopTrackingTouch(SeekBar s) { }
-        });
-    }
-
-    private void setupTransition() {
-        RadioGroup group = findViewById(R.id.group_transition);
-        switch (prefs.getTransition()) {
-            case FADE: group.check(R.id.radio_fade); break;
-            case KEN_BURNS: group.check(R.id.radio_ken_burns); break;
-            default: group.check(R.id.radio_slide);
+    /** One-line summaries under each category title; cheap (no photo listing). */
+    private void refreshSummaries() {
+        List<String> parts = new ArrayList<>();
+        int folders = prefs.getLocalFolders().size();
+        if (folders > 0) parts.add(getResources().getQuantityString(R.plurals.summary_phone_folders, folders, folders));
+        for (CloudProvider p : CloudProviders.all()) {
+            if (p.isSignedIn(this)) parts.add(p.displayName(this));
         }
-        group.setOnCheckedChangeListener((g, checkedId) -> {
-            if (checkedId == R.id.radio_fade) prefs.setTransition(SlideshowView.Transition.FADE);
-            else if (checkedId == R.id.radio_ken_burns) prefs.setTransition(SlideshowView.Transition.KEN_BURNS);
-            else prefs.setTransition(SlideshowView.Transition.SLIDE);
-        });
-    }
+        ((TextView) findViewById(R.id.sum_photos)).setText(parts.isEmpty()
+                ? getString(R.string.summary_photos_none) : String.join(" · ", parts));
 
-    /** One photo at a time vs. photo table; shows only the options that apply. */
-    private void setupMode() {
-        RadioGroup group = findViewById(R.id.group_mode);
-        group.check(prefs.getDisplayMode() == Prefs.DisplayMode.TABLE
-                ? R.id.radio_mode_table : R.id.radio_mode_single);
-        applyModeVisibility();
-        group.setOnCheckedChangeListener((g, checkedId) -> {
-            prefs.setDisplayMode(checkedId == R.id.radio_mode_table
-                    ? Prefs.DisplayMode.TABLE : Prefs.DisplayMode.SINGLE);
-            applyModeVisibility();
-        });
-    }
+        String mode = getString(prefs.getDisplayMode() == Prefs.DisplayMode.TABLE
+                ? R.string.mode_table : R.string.mode_single);
+        ((TextView) findViewById(R.id.sum_display)).setText(
+                getString(R.string.summary_display, mode, prefs.getIntervalSeconds()));
 
-    private void applyModeVisibility() {
-        boolean table = prefs.getDisplayMode() == Prefs.DisplayMode.TABLE;
-        findViewById(R.id.group_single_only).setVisibility(table ? View.GONE : View.VISIBLE);
-        findViewById(R.id.group_table_only).setVisibility(table ? View.VISIBLE : View.GONE);
-    }
+        int alarmsOn = 0;
+        for (Alarm a : new AlarmStore(this).list()) if (a.enabled) alarmsOn++;
+        ((TextView) findViewById(R.id.sum_alarms)).setText(alarmsOn == 0
+                ? getString(R.string.summary_alarms_none)
+                : getResources().getQuantityString(R.plurals.summary_alarms_on, alarmsOn, alarmsOn));
 
-    private void setupEntry() {
-        RadioGroup group = findViewById(R.id.group_entry);
-        switch (prefs.getTableEntry()) {
-            case DROP: group.check(R.id.radio_entry_drop); break;
-            case FLY_IN: group.check(R.id.radio_entry_fly); break;
-            case POP: group.check(R.id.radio_entry_pop); break;
-            case FADE: group.check(R.id.radio_entry_fade); break;
-            default: group.check(R.id.radio_entry_random);
-        }
-        group.setOnCheckedChangeListener((g, checkedId) -> {
-            if (checkedId == R.id.radio_entry_drop) prefs.setTableEntry(Prefs.Entry.DROP);
-            else if (checkedId == R.id.radio_entry_fly) prefs.setTableEntry(Prefs.Entry.FLY_IN);
-            else if (checkedId == R.id.radio_entry_pop) prefs.setTableEntry(Prefs.Entry.POP);
-            else if (checkedId == R.id.radio_entry_fade) prefs.setTableEntry(Prefs.Entry.FADE);
-            else prefs.setTableEntry(Prefs.Entry.RANDOM);
-        });
-    }
-
-    private interface IntSetter { void set(int value); }
-
-    /** A SeekBar from min..max with a "label: N" text above it. */
-    private void setupSeek(int seekId, int labelId, int formatRes, int min, int max,
-                           int value, IntSetter setter) {
-        SeekBar seek = findViewById(seekId);
-        TextView label = findViewById(labelId);
-        seek.setMax(max - min);
-        int v = Math.max(min, Math.min(max, value));
-        seek.setProgress(v - min);
-        label.setText(getString(formatRes, v));
-        seek.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
-            @Override public void onProgressChanged(SeekBar s, int progress, boolean fromUser) {
-                int n = progress + min;
-                label.setText(getString(formatRes, n));
-                setter.set(n);
-            }
-            @Override public void onStartTrackingTouch(SeekBar s) { }
-            @Override public void onStopTrackingTouch(SeekBar s) { }
-        });
-    }
-
-    private interface BoolSetter { void set(boolean value); }
-
-    private void setupSwitch(int id, boolean value, BoolSetter setter) {
-        MaterialSwitch sw = findViewById(id);
-        sw.setChecked(value);
-        sw.setOnCheckedChangeListener((b, checked) -> setter.set(checked));
+        ((TextView) findViewById(R.id.sum_about)).setText(
+                getString(R.string.about_version, AboutActivity.versionName(this)));
     }
 }

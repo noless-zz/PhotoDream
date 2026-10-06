@@ -17,7 +17,7 @@ public final class OneDriveConfig {
     static final String AUTH_BASE = "https://login.microsoftonline.com/common/oauth2/v2.0/";
 
     /** Read-only access to files, plus a refresh token so we stay signed in. */
-    static final String SCOPES = "Files.Read User.Read offline_access";
+    static final String SCOPES = "Files.Read Files.Read.All User.Read offline_access";   // .All: needed for folders shared with me (users agree once more)
 
     static final String GRAPH = "https://graph.microsoft.com/v1.0";
 

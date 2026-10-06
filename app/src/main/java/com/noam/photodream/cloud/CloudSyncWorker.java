@@ -17,6 +17,9 @@ import androidx.work.ForegroundInfo;
 import androidx.work.Worker;
 import androidx.work.WorkerParameters;
 
+import com.noam.photodream.PhotoDateIndex;
+import com.noam.photodream.PhotoDates;
+import com.noam.photodream.PhotoMarksStore;
 import com.noam.photodream.R;
 import com.noam.photodream.source.CacheFolderSource;
 
@@ -27,6 +30,9 @@ import java.io.OutputStream;
 import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -131,6 +137,8 @@ public class CloudSyncWorker extends Worker {
         } finally {
             running.unlock();
         }
+        // new photos arrived: describe them while charging (labels, on the phone)
+        com.noam.photodream.describe.DescriptionWorker.schedule(ctx, androidx.work.ExistingWorkPolicy.KEEP);
         // "Sync now" paused the regular schedule – bring it back once we are done for good
         if (syncNow && !result.equals(Result.retry())) CloudScheduler.schedule(ctx, provider, 6);
         return result;
@@ -143,6 +151,17 @@ public class CloudSyncWorker extends Worker {
 
         File dir = cacheDir(ctx, provider);
         if (!dir.isDirectory() && !dir.mkdirs()) throw new IOException("Cannot create " + dir);
+
+        // the shrunken copies lose their EXIF, so remember when each photo was taken, as the cloud says
+        PhotoDateIndex dateIndex = PhotoDateIndex.get(ctx);
+        java.util.Set<String> keysInCloud = new HashSet<>();
+        for (CloudItem item : remote) {
+            String key = provider.id() + ":" + fileName(provider, item.id);
+            keysInCloud.add(key);
+            if (item.takenDate != null) dateIndex.put(key, PhotoDates.parse(item.takenDate));
+        }
+        dateIndex.retainOnly(provider.id(), keysInCloud);
+        dateIndex.save();
 
         // what we already have: file name <-> cloud id
         Map<String, String> fileForId = new HashMap<>();
@@ -160,11 +179,23 @@ public class CloudSyncWorker extends Worker {
             for (File f : existing) {
                 String id = idForFile.get(f.getName());
                 if (id != null) cachedIds.add(id);
-                else orphanFiles.add(f);     // deleted in the cloud, or a leftover temp file
+                else if (!f.equals(failuresFile(dir))) orphanFiles.add(f);     // deleted in the cloud, or a leftover temp file
             }
         }
 
-        SyncPlanner.Plan plan = SyncPlanner.plan(remoteIds, cachedIds, prefs.getMaxPhotos(),
+        // photos Android can't decode: don't download them again and again
+        DecodeFailures failures = loadFailures(dir);
+        failures.retainOnly(new HashSet<>(remoteIds));
+        Set<String> unsupported = failures.excluded();
+
+        // photos the user marked as favorite stay in the cache (marks are stored by file name)
+        Set<String> favoriteNames = PhotoMarksStore.get(ctx).marks().favoriteNamesIn(provider.id());
+        Set<String> favoriteIds = new HashSet<>();
+        for (Map.Entry<String, String> e : fileForId.entrySet()) {
+            if (favoriteNames.contains(e.getValue())) favoriteIds.add(e.getKey());
+        }
+
+        SyncPlanner.Plan plan = SyncPlanner.plan(remoteIds, cachedIds, unsupported, favoriteIds, prefs.getMaxPhotos(),
                 ROTATE_FRACTION, new Random());
 
         // photos deleted from the cloud go right away
@@ -179,8 +210,13 @@ public class CloudSyncWorker extends Worker {
             File tmp = new File(dir, fileForId.get(id) + ".part");
             try {
                 provider.download(ctx, id, tmp);
-                if (shrink(tmp, new File(dir, fileForId.get(id)), targetLongSide)) added++;
-                else failed++;
+                if (shrink(tmp, new File(dir, fileForId.get(id)), targetLongSide)) {
+                    added++;
+                    failures.recordSuccess(id);
+                } else {
+                    failed++;
+                    failures.recordDecodeFailure(id);   // the download itself worked, so this is the format
+                }
             } catch (NotSignedInException e) {
                 throw e;
             } catch (IOException e) {
@@ -201,12 +237,17 @@ public class CloudSyncWorker extends Worker {
             delete(new File(dir, fileForId.get(id)));
         }
 
+        saveFailures(dir, failures);
+
         int onPhone = countPhotos(dir);
         StringBuilder s = new StringBuilder();
         s.append(timeNow()).append(" – ").append(onPhone).append(" photos on phone (")
                 .append(added).append(" new");
         if (failed > 0) s.append(", ").append(failed).append(" skipped");
         s.append(")");
+        if (!unsupported.isEmpty()) {
+            s.append(" ").append(ctx.getResources().getQuantityString(R.plurals.cloud_unsupported_skipped, unsupported.size(), unsupported.size()));
+        }
         if (isStopped()) s.append(" – paused, will continue");
         return s.toString();
     }
@@ -258,6 +299,42 @@ public class CloudSyncWorker extends Worker {
                 .build();
         int notificationId = 4700 + Math.abs(provider.id().hashCode() % 100);
         return new ForegroundInfo(notificationId, n, ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC);
+    }
+
+    private static File failuresFile(File cacheDir) {
+        return new File(cacheDir, "failed.json");
+    }
+
+    private static DecodeFailures loadFailures(File cacheDir) {
+        Map<String, Integer> saved = new HashMap<>();
+        File f = failuresFile(cacheDir);
+        if (f.isFile()) {
+            try (java.io.FileInputStream in = new java.io.FileInputStream(f)) {
+                byte[] bytes = new byte[(int) f.length()];
+                int n = in.read(bytes);
+                JSONObject o = new JSONObject(new String(bytes, 0, Math.max(n, 0), java.nio.charset.StandardCharsets.UTF_8));
+                for (java.util.Iterator<String> it = o.keys(); it.hasNext(); ) {
+                    String id = it.next();
+                    saved.put(id, o.getInt(id));
+                }
+            } catch (IOException | JSONException e) {
+                Log.w(TAG, "Ignoring unreadable failed.json", e);
+            }
+        }
+        return new DecodeFailures(saved);
+    }
+
+    private static void saveFailures(File cacheDir, DecodeFailures failures) {
+        File f = failuresFile(cacheDir);
+        if (failures.asMap().isEmpty()) {
+            delete(f);
+            return;
+        }
+        try (OutputStream out = new FileOutputStream(f)) {
+            out.write(new JSONObject(failures.asMap()).toString().getBytes(java.nio.charset.StandardCharsets.UTF_8));
+        } catch (IOException e) {
+            Log.w(TAG, "Could not save failed.json", e);
+        }
     }
 
     private static int countPhotos(File dir) {

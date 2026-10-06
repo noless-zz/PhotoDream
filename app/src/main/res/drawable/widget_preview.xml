@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Picture shown in the widget picker: a framed photo with a sun and hills. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="160dp"
+    android:height="160dp"
+    android:viewportWidth="160"
+    android:viewportHeight="160">
+    <path android:fillColor="#FFFFFFFF" android:pathData="M0,0h160v160h-160z" />
+    <path android:fillColor="#FF1F2A44" android:pathData="M8,8h144v144h-144z" />
+    <path android:fillColor="#FFE0A458" android:pathData="M112,44m-16,0a16,16 0,1 1,32 0a16,16 0,1 1,-32 0" />
+    <path android:fillColor="#FF3B5B7A" android:pathData="M8,152L8,110L50,70L88,112L112,92L152,128L152,152z" />
+    <path android:fillColor="#FF2A4560" android:pathData="M8,152L8,128L40,108L72,138L96,126L152,152z" />
+</vector>

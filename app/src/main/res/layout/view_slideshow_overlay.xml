@@ -1,9 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Shared by the screensaver and the preview: slideshow + clock on top -->
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:ignore="MergeRootFrame"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:background="@color/black">
+    android:layout_height="match_parent">
+    <!-- no background here: the theme already paints the window black -->
 
     <com.noam.photodream.SlideshowView
         android:id="@+id/slideshow"
@@ -16,6 +18,14 @@
         android:layout_height="match_parent"
         android:visibility="gone" />
 
+    <!-- night mode: dims and warms the photos (or hides them completely); not clickable, touches pass through -->
+    <View
+        android:id="@+id/night_overlay"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:importantForAccessibility="no"
+        android:visibility="gone" />
+
     <LinearLayout
         android:id="@+id/clock_box"
         android:layout_width="wrap_content"
@@ -23,6 +33,17 @@
         android:layout_gravity="bottom|start"
         android:layout_margin="32dp"
         android:orientation="vertical">
+
+        <!-- "June 2023 · 3 years ago" – only with the "Show photo date" setting -->
+        <TextView
+            android:id="@+id/photo_date"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:shadowColor="#AA000000"
+            android:shadowRadius="8"
+            android:textColor="@color/overlay_text"
+            android:textSize="16sp"
+            android:visibility="gone" />
 
         <TextClock
             android:id="@+id/clock"

@@ -45,6 +45,9 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
+    buildFeatures {
+        buildConfig true          // BuildConfig.VERSION_NAME for the "new version available" check
+    }
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_11
         targetCompatibility JavaVersion.VERSION_11
@@ -57,5 +60,10 @@ dependencies {
     implementation libs.activity
     implementation libs.work.runtime
     implementation libs.play.services.auth
+    implementation libs.mlkit.face.detection      // on-device faces for smart cropping (issue #29)
+    // on-device photo descriptions (issue #21): labels on every phone, sentences where Gemini Nano exists, Hebrew via translation
+    implementation libs.mlkit.image.labeling
+    implementation libs.mlkit.genai.image.description
+    implementation libs.mlkit.translate
     testImplementation libs.junit
 }

@@ -12,8 +12,22 @@
     <!-- "Allow background sync" button (asks to skip battery optimisation) -->
     <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
 
+    <!-- Wake-up alarms. We are an alarm-clock app, so USE_EXACT_ALARM is allowed for sideloaded builds.
+         NOTE for Google Play: it restricts USE_EXACT_ALARM to alarm/calendar apps – check before publishing.
+         SCHEDULE_EXACT_ALARM is the older permission for Android 12 (API 31-32). -->
+    <uses-permission android:name="android.permission.USE_EXACT_ALARM" />
+    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" android:maxSdkVersion="32" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <!-- Ringing: show over the lock screen, keep playing, vibrate, stay awake -->
+    <uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK" />
+    <uses-permission android:name="android.permission.VIBRATE" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+
     <application
         android:allowBackup="true"
+        android:dataExtractionRules="@xml/data_extraction_rules"
+        android:fullBackupContent="@xml/backup_rules"
         android:icon="@mipmap/ic_launcher"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:label="@string/app_name"
@@ -29,6 +43,82 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <!-- The ringing screen: over the lock screen, wakes the display -->
+        <activity
+            android:name=".alarm.AlarmActivity"
+            android:exported="false"
+            android:excludeFromRecents="true"
+            android:launchMode="singleTask"
+            android:showWhenLocked="true"
+            android:turnScreenOn="true"
+            android:theme="@style/Theme.PhotoDream.Fullscreen" />
+
+        <!-- Plays the alarm sound; keeps going when the screen is left -->
+        <service
+            android:name=".alarm.AlarmService"
+            android:exported="false"
+            android:foregroundServiceType="mediaPlayback" />
+
+        <!-- Home-screen photo widget -->
+        <receiver
+            android:name=".PhotoWidgetProvider"
+            android:exported="false"
+            android:label="@string/widget_label">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/photo_widget_info" />
+        </receiver>
+
+        <!-- Alarm rings / re-arming after reboot, time change, time-zone change, app update -->
+        <receiver
+            android:name=".alarm.AlarmReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.TIME_SET" />
+                <action android:name="android.intent.action.TIMEZONE_CHANGED" />
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
+            </intent-filter>
+        </receiver>
+
+        <!-- Lets the "Send problem report" share sheet read the report file -->
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths" />
+        </provider>
+
+        <!-- Settings sub-screens -->
+        <activity
+            android:name=".PhotosSettingsActivity"
+            android:exported="false"
+            android:parentActivityName=".SettingsActivity" />
+        <activity
+            android:name=".DisplaySettingsActivity"
+            android:exported="false"
+            android:parentActivityName=".SettingsActivity" />
+        <activity
+            android:name=".AboutActivity"
+            android:exported="false"
+            android:parentActivityName=".SettingsActivity" />
+
+        <activity
+            android:name=".alarm.AlarmListActivity"
+            android:exported="false"
+            android:parentActivityName=".SettingsActivity" />
+        <activity
+            android:name=".alarm.AlarmEditActivity"
+            android:exported="false"
+            android:parentActivityName=".alarm.AlarmListActivity"
+            android:windowSoftInputMode="adjustResize" />
 
         <!-- First-run introduction -->
         <activity

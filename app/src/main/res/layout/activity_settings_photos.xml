@@ -1,0 +1,177 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fitsSystemWindows="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="20dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:accessibilityHeading="true"
+            android:text="@string/section_photos"
+            android:textAppearance="?attr/textAppearanceHeadlineMedium" />
+
+        <!-- ===== Photos ===== -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_choose_folder"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/add_folder" />
+
+        <TextView
+            android:id="@+id/txt_folder"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/no_folder" />
+
+        <!-- one row per chosen phone folder, filled in by SettingsActivity -->
+        <LinearLayout
+            android:id="@+id/list_folders"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical" />
+
+        <!-- only visible once a phone folder is chosen -->
+        <LinearLayout
+            android:id="@+id/group_local"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:visibility="gone">
+
+            <com.google.android.material.materialswitch.MaterialSwitch
+                android:id="@+id/sw_local_show"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:minHeight="48dp"
+                android:text="@string/source_show" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/frame_color" />
+
+            <com.noam.photodream.SwatchPicker
+                android:id="@+id/sw_local_frame"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
+
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/txt_count"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textStyle="bold" />
+
+        <!-- favorites and hidden photos (set from focus mode on the photo table) -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/txt_favorites"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_clear_favorites"
+                style="@style/Widget.Material3.Button.TextButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/marks_clear" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/txt_hidden"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_show_hidden"
+                style="@style/Widget.Material3.Button.TextButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/marks_show_again" />
+        </LinearLayout>
+
+        <!-- ===== Photo descriptions (for the "find the photo" alarm game) ===== -->
+        <TextView
+            style="@style/SectionTitle"
+            android:text="@string/describe_title" />
+
+        <TextView
+            android:id="@+id/txt_describe_status"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+
+        <com.google.android.material.materialswitch.MaterialSwitch
+            android:id="@+id/sw_describe_hebrew"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:minHeight="48dp"
+            android:text="@string/describe_hebrew" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_prepare_descriptions"
+            style="@style/Widget.Material3.Button.OutlinedButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/describe_prepare" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:alpha="0.7"
+            android:text="@string/describe_hint" />
+
+        <com.google.android.material.materialswitch.MaterialSwitch
+            android:id="@+id/sw_strip"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:minHeight="48dp"
+            android:text="@string/source_strip" />
+
+        <!-- ===== Cloud sources (same controls for each cloud) ===== -->
+        <com.noam.photodream.cloud.CloudSourceView
+            android:id="@+id/source_onedrive"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+
+        <com.noam.photodream.cloud.CloudSourceView
+            android:id="@+id/source_gdrive"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_battery"
+            style="@style/Widget.Material3.Button.TextButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/cloud_battery" />
+
+        <TextView
+            android:id="@+id/txt_battery_hint"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:alpha="0.6"
+            android:text="@string/cloud_battery_hint" />
+
+            </LinearLayout>
+</ScrollView>

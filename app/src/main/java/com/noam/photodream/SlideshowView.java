@@ -1,11 +1,13 @@
 package com.noam.photodream;
 
 import android.animation.Animator;
+import android.annotation.SuppressLint;
 import android.animation.ObjectAnimator;
 import android.animation.PropertyValuesHolder;
 import android.content.Context;
 import android.graphics.Bitmap;
-import android.net.Uri;
+import android.graphics.Color;
+import android.graphics.Matrix;
 import android.os.Handler;
 import android.os.Looper;
 import android.util.AttributeSet;
@@ -21,10 +23,11 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
 import java.util.Random;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 /**
  * Full-screen photo slideshow with animated transitions and touch control.
@@ -48,21 +51,23 @@ public class SlideshowView extends FrameLayout implements PhotoDisplay {
     private static final long RETRY_MS = 300;
 
     private final ImageView[] imageViews = new ImageView[2];
+    private int showToken;                        // makes late face-detection answers harmless
     private int front = 0;                       // index into imageViews currently visible
     private final TextView messageView;
 
     private final Handler handler = new Handler(Looper.getMainLooper());
-    private final ExecutorService loader = Executors.newSingleThreadExecutor();
+    private final AsyncBitmapLoader bitmaps;
     private final Random random = new Random();
     private final GestureDetector gestures;
 
-    private List<Uri> photos = new ArrayList<>();
-    private int index = -1;
-    private int requestId = 0;                   // ignores decodes that finished too late
+    private PhotoQueue queue = new PhotoQueue(new ArrayList<>(), new Random());
+    private PhotoQueue.Weights weights;
     private boolean running;
     private boolean paused;
-    private int failuresInARow;
     private Animator kenBurns;
+    private final View strip;                    // thin bar in the current photo's source color
+    private boolean showStrip;
+    private Map<String, Integer> frameColors = new HashMap<>();
 
     private long intervalMs = 10_000;
     private Transition transition = Transition.SLIDE;
@@ -76,12 +81,19 @@ public class SlideshowView extends FrameLayout implements PhotoDisplay {
 
     public SlideshowView(Context context, AttributeSet attrs) {
         super(context, attrs);
+        bitmaps = new AsyncBitmapLoader(context);
         for (int i = 0; i < 2; i++) {
             ImageView iv = new ImageView(context);
             iv.setLayoutParams(new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
             addView(iv);
             imageViews[i] = iv;
         }
+        strip = new View(context);
+        strip.setLayoutParams(new LayoutParams(LayoutParams.MATCH_PARENT,
+                Math.round(4 * getResources().getDisplayMetrics().density), Gravity.BOTTOM));
+        strip.setVisibility(GONE);
+        addView(strip);
+
         messageView = new TextView(context);
         LayoutParams lp = new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT, Gravity.CENTER);
         messageView.setLayoutParams(lp);
@@ -96,7 +108,12 @@ public class SlideshowView extends FrameLayout implements PhotoDisplay {
             @Override public boolean onDown(MotionEvent e) { return true; }
 
             @Override public boolean onSingleTapConfirmed(MotionEvent e) {
-                togglePause();
+                performClick();      // also what TalkBack's "double-tap to activate" does
+                return true;
+            }
+
+            @Override public boolean onDoubleTap(MotionEvent e) {
+                if (listener != null) listener.onExitRequested();   // double-tap anywhere = leave
                 return true;
             }
 
@@ -127,17 +144,27 @@ public class SlideshowView extends FrameLayout implements PhotoDisplay {
         for (ImageView iv : imageViews) iv.setScaleType(type);
     }
 
+    /** Show a 4dp strip in the source's frame color along the bottom edge (off by default). */
+    public void setSourceStrip(boolean on, Map<String, Integer> colors) {
+        showStrip = on;
+        frameColors = new HashMap<>(colors);
+        if (!on) strip.setVisibility(GONE);
+    }
+
+    @Override
+    public void setWeights(PhotoQueue.Weights w) { weights = w; }
+
     // ---------------------------------------------------------------- control
 
     /** Start (or restart) with a new list of photos. Call on the main thread. */
     @Override
-    public void start(List<Uri> newPhotos) {
-        photos = new ArrayList<>(newPhotos);
-        index = -1;
+    public void start(List<Photo> newPhotos) {
+        queue = new PhotoQueue(newPhotos, random);
+        queue.setReshuffleOnWrap(new Prefs(getContext()).isShuffle());
+        queue.setWeights(weights);
         running = true;
         paused = false;
-        failuresInARow = 0;
-        if (photos.isEmpty()) {
+        if (queue.isEmpty()) {
             showMessage(getContext().getString(R.string.msg_no_photos), false);
             return;
         }
@@ -148,7 +175,7 @@ public class SlideshowView extends FrameLayout implements PhotoDisplay {
     @Override
     public void stop() {
         running = false;
-        requestId++;
+        bitmaps.cancel();
         handler.removeCallbacksAndMessages(null);
         cancelAnimations();
     }
@@ -157,14 +184,14 @@ public class SlideshowView extends FrameLayout implements PhotoDisplay {
     @Override
     public void release() {
         stop();
-        loader.shutdownNow();
+        bitmaps.release();
     }
 
     public void next() { show(+1); }
     public void previous() { show(-1); }
 
     public void togglePause() {
-        if (!running || photos.isEmpty()) return;
+        if (!running || queue.isEmpty()) return;
         paused = !paused;
         handler.removeCallbacks(advance);
         if (paused) {
@@ -180,27 +207,36 @@ public class SlideshowView extends FrameLayout implements PhotoDisplay {
     // ---------------------------------------------------------------- internals
 
     private void show(int delta) {
-        if (!running || photos.isEmpty()) return;
+        if (!running) return;
         handler.removeCallbacks(advance);
-        index = Math.floorMod(index + delta, photos.size());
-        final Uri uri = photos.get(index);
-        final int id = ++requestId;
-        final int target = targetLongSide();
         final boolean forward = delta >= 0;
+        final Photo photo = forward ? queue.next() : queue.previous();
+        if (photo == null) {
+            // going back past the first photo does nothing; running out of photos shows the empty message
+            if (forward) showMessage(getContext().getString(R.string.msg_no_photos), false);
+            return;
+        }
 
-        loader.execute(() -> {
-            Bitmap bmp = BitmapLoader.load(getContext(), uri, target);
-            handler.post(() -> {
-                if (id != requestId || !running) return;   // user swiped again / stopped
-                if (bmp == null) {
-                    // unreadable file: skip it, but don't spin forever if all fail
-                    if (++failuresInARow < photos.size()) handler.postDelayed(() -> show(forward ? 1 : -1), RETRY_MS);
-                    return;
-                }
-                failuresInARow = 0;
-                display(bmp, forward);
+        final int token = ++showToken;
+        bitmaps.load(photo.uri, targetLongSide(), bmp -> {
+            if (!running) return;                    // stopped while decoding (a newer swipe replaces this request)
+            if (bmp == null) {
+                // unreadable file: never pick it again, and move on
+                queue.markFailed(photo);
+                handler.postDelayed(() -> show(forward ? 1 : -1), RETRY_MS);
+                return;
+            }
+            if (crop || transition == Transition.KEN_BURNS) {
+                // faces decide the crop and the zoom point; the answer is instant for photos seen before
+                FaceFinder.get(getContext()).find(photo, bmp, faces -> {
+                    if (!running || token != showToken) return;   // the user swiped on in the meantime
+                    display(bmp, forward, photo, faces);
+                    scheduleNext();
+                });
+            } else {
+                display(bmp, forward, photo, Collections.<float[]>emptyList());
                 scheduleNext();
-            });
+            }
         });
     }
 
@@ -208,14 +244,31 @@ public class SlideshowView extends FrameLayout implements PhotoDisplay {
         if (running && !paused) handler.postDelayed(advance, intervalMs);
     }
 
-    private void display(Bitmap bmp, boolean forward) {
+    private void display(Bitmap bmp, boolean forward, Photo photo, List<float[]> faces) {
         cancelAnimations();
+        if (showStrip) {
+            strip.setBackgroundColor(frameColors.getOrDefault(photo.sourceId, Color.WHITE));
+            strip.setVisibility(VISIBLE);
+        }
         final ImageView current = imageViews[front];
         final ImageView incoming = imageViews[1 - front];
 
         resetView(incoming);
+        if (listener != null) listener.onPhotoShown(photo);
         incoming.setImageBitmap(bmp);
+        // no faces: the normal centre crop / fit; with faces and "fill screen": our own face-aware crop
+        incoming.setScaleType(crop ? ImageView.ScaleType.CENTER_CROP : ImageView.ScaleType.FIT_CENTER);
+        float[] zoomPoint = null;
+        if (!faces.isEmpty() && getWidth() > 0 && getHeight() > 0) {
+            Matrix m = FaceCrop.matrix(bmp.getWidth(), bmp.getHeight(), getWidth(), getHeight(), crop, faces);
+            if (crop) {
+                incoming.setScaleType(ImageView.ScaleType.MATRIX);
+                incoming.setImageMatrix(m);
+            }
+            zoomPoint = FaceCrop.focusInView(bmp.getWidth(), bmp.getHeight(), m, faces);
+        }
         incoming.bringToFront();
+        strip.bringToFront();
         messageView.bringToFront();
         float width = getWidth() > 0 ? getWidth() : targetLongSide();
 
@@ -240,6 +293,13 @@ public class SlideshowView extends FrameLayout implements PhotoDisplay {
                 // slow zoom + drift for the whole time the photo is on screen
                 float endScale = 1.12f + random.nextFloat() * 0.08f;
                 float drift = (random.nextFloat() - 0.5f) * width * 0.06f;
+                if (zoomPoint != null) {
+                    // zoom toward the faces instead of drifting at random
+                    incoming.setPivotX(zoomPoint[0]);
+                    incoming.setPivotY(zoomPoint[1]);
+                    endScale = 1.18f;
+                    drift = 0f;
+                }
                 ObjectAnimator zoom = ObjectAnimator.ofPropertyValuesHolder(incoming,
                         PropertyValuesHolder.ofFloat(View.SCALE_X, 1f, endScale),
                         PropertyValuesHolder.ofFloat(View.SCALE_Y, 1f, endScale),
@@ -255,6 +315,7 @@ public class SlideshowView extends FrameLayout implements PhotoDisplay {
 
     private void resetView(ImageView v) {
         v.animate().cancel();
+        v.resetPivot();                              // Ken Burns may have moved the zoom point onto a face
         v.setAlpha(1f);
         v.setTranslationX(0f);
         v.setScaleX(1f);
@@ -287,8 +348,18 @@ public class SlideshowView extends FrameLayout implements PhotoDisplay {
         return Math.max(dm.widthPixels, dm.heightPixels);
     }
 
+    // performClick() is called by the gesture detector once a single tap is confirmed
+    // (not a double tap), so lint can't see it in this method.
+    @SuppressLint("ClickableViewAccessibility")
     @Override
     public boolean onTouchEvent(MotionEvent event) {
         return gestures.onTouchEvent(event) || super.onTouchEvent(event);
+    }
+
+    /** A tap (or an accessibility click) pauses / resumes the slideshow. */
+    @Override
+    public boolean performClick() {
+        togglePause();
+        return super.performClick();
     }
 }

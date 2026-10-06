@@ -3,10 +3,28 @@
     <string name="dream_label">PhotoDream slideshow</string>
 
     <string name="section_photos">Photos</string>
-    <string name="choose_folder">Choose photo folder</string>
+    <string name="add_folder">Add photo folder</string>
+    <string name="folder_row">%1$s · %2$d</string>
     <string name="no_folder">No folder chosen yet</string>
+    <string name="count_with_sources">%1$s\n%2$s</string>
+    <string name="frame_color">Frame color</string>
+    <string name="frame_white">Classic white</string>
+    <string name="frame_cream">Cream</string>
+    <string name="frame_black">Black</string>
+    <string name="frame_blue">Blue</string>
+    <string name="frame_green">Green</string>
+    <string name="frame_amber">Amber</string>
+    <string name="frame_coral">Coral</string>
+    <string name="frame_purple">Purple</string>
+    <string name="frame_teal">Teal</string>
+    <string name="swatch_selected">%1$s, selected</string>
+    <string name="source_strip">Show source color in one-photo mode</string>
+    <string name="source_show">Show in slideshow</string>
+    <string name="source_hidden">hidden</string>
+    <string name="source_phone">Phone</string>
+    <string name="remove_folder_named">Remove folder %1$s</string>
+    <string name="folder_already_added">That folder is already added</string>
     <string name="counting">Counting photos…</string>
-    <string name="photo_count">%1$d photos found</string>
 
     <string name="section_slideshow">Slideshow</string>
     <string name="interval_label">Seconds per photo: %1$d</string>
@@ -19,7 +37,6 @@
     <string name="show_clock">Show clock</string>
     <string name="dim">Dim screen (good for bedside)</string>
 
-    <string name="section_run">Run it</string>
     <string name="preview">Preview now</string>
     <string name="open_system_settings">Open system screen saver settings</string>
     <string name="system_hint">In system settings, pick \"PhotoDream slideshow\" and set \"When to start\" to \"While charging\". On Samsung you may need to turn off Always On Display.</string>
@@ -27,7 +44,7 @@
     <string name="msg_no_photos">No photos yet.\nOpen PhotoDream and choose a folder.</string>
     <string name="msg_paused">Paused</string>
     <string name="msg_playing">Playing</string>
-    <string name="gesture_hint">Swipe = next/previous · Tap = pause · Long-press = exit</string>
+    <string name="gesture_hint">Swipe = next/previous · Tap = pause · Double-tap or long-press = exit</string>
 
     <string name="section_mode">Display mode</string>
     <string name="mode_single">One photo at a time</string>
@@ -40,11 +57,10 @@
     <string name="entry_pop">Pop up</string>
     <string name="entry_fade">Fade in</string>
     <string name="entry_random">Random mix</string>
-    <string name="max_cards_label">Photos on table: %1$d</string>
     <string name="card_size_label">Photo size: %1$d%%</string>
     <string name="rotation_label">Max tilt: %1$d°</string>
     <string name="drift">Slow floating movement</string>
-    <string name="table_gestures">Drag a photo to move it · flick it to throw it away · long-press the empty table (or Back) to exit</string>
+    <string name="table_gestures">Drag a photo to move it · flick it to throw it away · double-tap a photo to enlarge it, double-tap again to go back · double-tap the empty table (or long-press, or Back) to exit</string>
 
     <!-- cloud sources (shared) -->
     <string name="cloud_not_connected">Not connected</string>
@@ -59,12 +75,10 @@
     <string name="cloud_choose_folder">Choose folder</string>
     <string name="cloud_no_folder">No folder chosen</string>
     <string name="cloud_subfolders">Include subfolders</string>
-    <string name="cloud_max_photos">Photos to keep on phone: %1$d</string>
     <string name="cloud_wifi_charging">Sync only on Wi-Fi while charging</string>
     <string name="cloud_sync_now">Sync now</string>
     <string name="cloud_sync_started">Syncing in the background…</string>
     <string name="cloud_syncing">Syncing…</string>
-    <string name="cloud_syncing_progress">Syncing… %1$d of %2$d photos</string>
     <string name="cloud_waiting">Waiting for internet…</string>
     <string name="cloud_last_sync">Last sync: %1$s</string>
     <string name="cloud_never_synced">Not synced yet</string>
@@ -73,7 +87,6 @@
     <string name="cloud_root">My files</string>
     <string name="cloud_up">Up</string>
     <string name="cloud_use_folder">Use this folder</string>
-    <string name="cloud_images_here">%1$d photos directly in this folder</string>
     <string name="cloud_error">Could not load: %1$s</string>
     <string name="cloud_channel">Photo sync</string>
     <string name="cloud_notification_title">Syncing %1$s photos</string>
@@ -101,7 +114,158 @@
     <string name="welcome_step2_title">2 · Turn on the screen saver</string>
     <string name="welcome_step2_text">In the system screen saver settings choose \"PhotoDream slideshow\" and set it to start while charging. On Samsung: Settings › Display › Screen saver. If nothing appears, turn off Always On Display.</string>
     <string name="welcome_step3_title">3 · Charge and enjoy</string>
-    <string name="welcome_step3_text">Put the phone on the charger and let the screen time out. Swipe to change photos, drag them on the photo table, long-press to leave – the lock screen stays protected.</string>
+    <string name="welcome_step3_text">Put the phone on the charger and let the screen time out. Swipe to change photos, drag them on the photo table, double-tap a photo to enlarge it, double-tap the empty table to leave – the lock screen stays protected.</string>
     <string name="welcome_start">Let\'s start</string>
     <string name="show_intro">Show introduction</string>
+
+    <!-- Counts: plurals so "1 photo" and "2 photos" read correctly -->
+    <plurals name="photo_count">
+        <item quantity="one">%1$d photo found</item>
+        <item quantity="other">%1$d photos found</item>
+    </plurals>
+    <plurals name="max_cards_label">
+        <item quantity="one">Photos on table: %1$d</item>
+        <item quantity="other">Photos on table: %1$d</item>
+    </plurals>
+    <plurals name="cloud_max_photos">
+        <item quantity="one">Photos to keep on phone: %1$d</item>
+        <item quantity="other">Photos to keep on phone: %1$d</item>
+    </plurals>
+    <plurals name="cloud_images_here">
+        <item quantity="one">%1$d photo directly in this folder</item>
+        <item quantity="other">%1$d photos directly in this folder</item>
+    </plurals>
+    <plurals name="cloud_syncing_progress">
+        <item quantity="one">Syncing… %1$d of %2$d photo</item>
+        <item quantity="other">Syncing… %1$d of %2$d photos</item>
+    </plurals>
+    <plurals name="cloud_unsupported_skipped">
+        <item quantity="one">(%1$d skipped: unsupported format)</item>
+        <item quantity="other">(%1$d skipped: unsupported format)</item>
+    </plurals>
+    <string name="settings_display">Display</string>
+    <string name="settings_alarms">Wake-up alarms</string>
+    <string name="settings_about">About</string>
+    <string name="summary_photos_none">No photos connected yet</string>
+    <string name="summary_display">%1$s · %2$d s per photo</string>
+    <string name="about_version">Version %1$s</string>
+    <string name="about_guide">Student guide</string>
+    <string name="about_repo">PhotoDream on GitHub</string>
+    <string name="about_privacy">Your photos stay on your phone. PhotoDream only connects to OneDrive or Google Drive to download the folder you choose, and it never uploads anything.</string>
+    <string name="about_no_browser">No browser found to open the link</string>
+    <plurals name="summary_phone_folders">
+        <item quantity="one">%1$d phone folder</item>
+        <item quantity="other">%1$d phone folders</item>
+    </plurals>
+    <string name="about_report">Send problem report</string>
+    <string name="about_report_hint">Creates a text file with technical details (no photos, no sign-in data) that you can send to your teacher.</string>
+    <string name="report_subject">PhotoDream problem report</string>
+    <string name="report_preparing">Preparing report…</string>
+    <string name="report_failed">Could not create the report</string>
+    <string name="alarm_channel">Alarms</string>
+    <string name="alarm_ringing">Wake-up alarm</string>
+    <string name="alarm_tap_to_open">Tap to open</string>
+    <string name="alarm_hold_to_stop">Hold to stop</string>
+    <string name="alarm_progress">%1$d / %2$d</string>
+    <string name="alarm_snooze">Snooze %1$d min (left: %2$d)</string>
+    <string name="alarm_cant_solve">Can\'t solve it?</string>
+    <string name="alarm_type_code">Type this code to stop the alarm:</string>
+    <string name="alarm_code_hint">Code</string>
+    <string name="alarm_code_wrong">Wrong code</string>
+    <string name="alarm_good_morning">Good morning!</string>
+    <string name="alarm_missed_channel">Missed alarms</string>
+    <string name="alarm_missed">Missed alarm</string>
+    <string name="alarm_missed_text">The %1$s alarm rang for 15 minutes and stopped by itself.</string>
+    <string name="summary_alarms_none">No alarms yet</string>
+    <plurals name="summary_alarms_on">
+        <item quantity="one">%1$d alarm on</item>
+        <item quantity="other">%1$d alarms on</item>
+    </plurals>
+    <string name="alarm_add">Add alarm</string>
+    <string name="alarm_empty">Wake up with your own photos: to turn the alarm off you have to play a quick game with them.</string>
+    <string name="alarm_new">New alarm</string>
+    <string name="alarm_edit">Edit alarm</string>
+    <string name="alarm_time">Alarm time</string>
+    <string name="alarm_days">Repeat on</string>
+    <string name="alarm_once">Once</string>
+    <string name="alarm_once_hint">Rings once, at the next time the clock shows this time.</string>
+    <string name="alarm_every_day">Every day</string>
+    <string name="alarm_label">Label (optional)</string>
+    <string name="alarm_challenge">Challenge</string>
+    <string name="challenge_random">Random</string>
+    <string name="alarm_difficulty">Difficulty</string>
+    <string name="difficulty_easy">Easy</string>
+    <string name="difficulty_medium">Medium</string>
+    <string name="difficulty_hard">Hard</string>
+    <string name="alarm_sound">Sound</string>
+    <string name="alarm_sound_default">Default alarm sound</string>
+    <string name="alarm_vibrate">Vibrate</string>
+    <string name="alarm_snooze_label">Snooze: %1$d min</string>
+    <string name="alarm_save">Save</string>
+    <string name="alarm_test_now">Test now</string>
+    <string name="alarm_delete">Delete</string>
+    <string name="alarm_delete_confirm">Delete this alarm?</string>
+    <string name="alarm_on_off">Alarm %1$s on or off</string>
+    <string name="alarm_in_less_than_minute">Alarm in less than a minute</string>
+    <string name="alarm_in_minutes">Alarm in %1$d min</string>
+    <string name="alarm_in_hours_minutes">Alarm in %1$d h %2$d min</string>
+    <string name="alarm_in_days_hours_minutes">Alarm in %1$d d %2$d h %3$d min</string>
+    <string name="alarm_warn_exact">Android is not allowing exact alarms for PhotoDream, so alarms may ring late or not at all.</string>
+    <string name="alarm_fix_exact">Allow exact alarms</string>
+    <string name="alarm_warn_fullscreen">Full-screen alerts are off: the alarm will only show a notification on the lock screen.</string>
+    <string name="alarm_fix_fullscreen">Allow full-screen alerts</string>
+    <string name="alarm_warn_notifications">Notifications are off for PhotoDream. The alarm screen may not appear.</string>
+    <string name="alarm_fix_notifications">Open notification settings</string>
+    <string name="alarm_warn_battery">Battery saving may stop PhotoDream before the alarm rings.</string>
+    <string name="alarm_fix_battery">Open battery settings</string>
+    <string name="challenge_flip">Flip them all</string>
+    <string name="flip_card">Photo card %1$d</string>
+    <string name="challenge_runaway">Catch the runaway photo</string>
+    <string name="runaway_card">Runaway photo</string>
+    <string name="challenge_memory">Memory pairs</string>
+    <string name="update_available">PhotoDream %1$s is available</string>
+    <string name="update_download">Download</string>
+    <string name="section_night">Night mode</string>
+    <string name="night_enable">Dim the screen at night</string>
+    <string name="night_from">From %1$s</string>
+    <string name="night_to">To %1$s</string>
+    <string name="night_dim_warm">Dim and warm (photos change half as often)</string>
+    <string name="night_clock_only">Clock only (black screen)</string>
+    <string name="photo_favorite">Favorite</string>
+    <string name="photo_hide">Hide this photo</string>
+    <string name="photo_hidden_undo">Photo hidden · Undo</string>
+    <string name="marks_favorites">Favorites: %1$d</string>
+    <string name="marks_hidden">Hidden photos: %1$d</string>
+    <string name="marks_clear">Clear</string>
+    <string name="marks_show_again">Show again</string>
+    <string name="cloud_my_files">My files</string>
+    <string name="cloud_shared_with_me">Shared with me</string>
+    <string name="widget_label">PhotoDream photo</string>
+    <string name="widget_description">A random photo from your folders and clouds, changing every half hour. Tap to open the preview.</string>
+    <string name="widget_empty">Open PhotoDream and choose some photos</string>
+    <string name="widget_image_description">Random photo</string>
+    <string name="show_photo_date">Show photo date</string>
+    <string name="on_this_day_setting">Show photos from this day in earlier years more often</string>
+    <string name="on_this_day">On this day</string>
+    <string name="photo_date_caption">%1$s · %2$s</string>
+    <plurals name="years_ago">
+        <item quantity="one">%1$d year ago</item>
+        <item quantity="other">%1$d years ago</item>
+    </plurals>
+    <string name="describe_title">Photo descriptions</string>
+    <string name="describe_status">Photos described: %1$d / %2$d · %3$s</string>
+    <string name="describe_engine_labels">labels only (this phone has no on-device AI model)</string>
+    <string name="describe_engine_sentences">labels and sentences (Gemini Nano)</string>
+    <string name="describe_engine_downloadable">labels only – Gemini Nano can be downloaded</string>
+    <string name="describe_hebrew">Describe in Hebrew</string>
+    <string name="describe_prepare">Prepare descriptions</string>
+    <string name="describe_cancel">Stop</string>
+    <string name="describe_working">Describing photos…</string>
+    <string name="describe_downloading">Downloading the on-device AI model…</string>
+    <string name="describe_progress">Describing photos… %1$d / %2$d</string>
+    <string name="describe_hint">Descriptions are made on this phone; no photo leaves it. Labels are added in the background while the phone charges. Sentences need a newer phone and the screen on, so press the button and keep the app open. The Hebrew language pack is downloaded once, on Wi-Fi.</string>
+    <string name="challenge_find">Find the described photo</string>
+    <string name="find_prompt_sentence">Find this photo: “%1$s”</string>
+    <string name="find_prompt_labels">Find the photo with: %1$s</string>
+    <string name="find_fallback">Not enough described photos yet – playing “Flip them all” instead.</string>
 </resources>
