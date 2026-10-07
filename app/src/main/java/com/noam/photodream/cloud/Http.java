@@ -53,6 +53,29 @@ public final class Http {
         return readJson(c);
     }
 
+    /**
+     * POSTs a JSON body with custom headers (the AI services take their key in a header) and
+     * returns the raw answer text. Non-2xx answers throw {@link HttpException}.
+     */
+    public static String postJson(String url, Map<String, String> headers, String json, int timeoutMs) throws IOException {
+        HttpURLConnection c = open(url, null);
+        c.setConnectTimeout(timeoutMs);
+        c.setReadTimeout(timeoutMs);
+        c.setRequestMethod("POST");
+        c.setDoOutput(true);
+        for (Map.Entry<String, String> h : headers.entrySet()) c.setRequestProperty(h.getKey(), h.getValue());
+        try (OutputStream out = c.getOutputStream()) {
+            out.write(json.getBytes(StandardCharsets.UTF_8));
+        }
+        try {
+            int code = c.getResponseCode();
+            if (code < 200 || code >= 300) throw new HttpException(code, readAll(c.getErrorStream()));
+            return readAll(c.getInputStream());
+        } finally {
+            c.disconnect();
+        }
+    }
+
     public static JSONObject getJson(String url, String accessToken) throws IOException {
         HttpURLConnection c = open(url, accessToken);
         c.setRequestProperty("Accept", "application/json");

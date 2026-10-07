@@ -41,7 +41,7 @@ An alarm that rings over the lock screen; you stop it by solving a challenge wit
 |---|---|---|---|
 | [#21](https://github.com/noless-zz/PhotoDream/issues/21) | ✅ On-device descriptions: ML Kit labels (all phones), Gemini Nano sentences (newer phones), Hebrew, cache | L | #1 |
 | [#22](https://github.com/noless-zz/PhotoDream/issues/22) | ✅ Challenge: Find the described photo | M | #15, #21 |
-| [#23](https://github.com/noless-zz/PhotoDream/issues/23) | Optional cloud descriptions with Claude (own API key) | M | **decision** |
+| [#23](https://github.com/noless-zz/PhotoDream/issues/23) | ✅ Optional cloud descriptions: Claude, ChatGPT or Gemini (own API key, daily cap) | M | #21 |
 
 ## v0.6 · Delight  ([milestone](https://github.com/noless-zz/PhotoDream/milestone/5))
 | # | Issue | Size | Needs |
