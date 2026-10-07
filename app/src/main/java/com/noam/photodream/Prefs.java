@@ -142,6 +142,33 @@ public class Prefs {
     }
     public void setDescribeHebrew(boolean on) { sp.edit().putBoolean("describe_hebrew", on).apply(); }
 
+    // ---- cloud descriptions (issue #23): off by default, the user brings their own API key ----
+
+    /** Master switch. Only turned on after the user read the privacy text and saved a key. */
+    public boolean isCloudDescribe() { return sp.getBoolean("cloud_describe", false); }
+    public void setCloudDescribe(boolean on) { sp.edit().putBoolean("cloud_describe", on).apply(); }
+
+    /** Id of the chosen AI service ("claude", "openai", "gemini"). */
+    public String getCloudProvider() { return sp.getString("cloud_describe_provider", "claude"); }
+    public void setCloudProvider(String id) { sp.edit().putString("cloud_describe_provider", id).apply(); }
+
+    /** Model name typed by the user for a service; "" means use the service's default. */
+    public String getCloudModel(String providerId) { return sp.getString("cloud_describe_model_" + providerId, ""); }
+    public void setCloudModel(String providerId, String model) {
+        sp.edit().putString("cloud_describe_model_" + providerId, model).apply();
+    }
+
+    /** Max photos sent to the cloud per day (all services together). */
+    public int getCloudDailyLimit() { return sp.getInt("cloud_describe_limit", 30); }
+    public void setCloudDailyLimit(int n) { sp.edit().putInt("cloud_describe_limit", n).apply(); }
+
+    /** Today's cloud usage: the day it was counted on ("2026-10-07") and how many photos were sent. */
+    public String getCloudUsedDay() { return sp.getString("cloud_describe_used_day", ""); }
+    public int getCloudUsedCount() { return sp.getInt("cloud_describe_used_count", 0); }
+    public void setCloudUsed(String day, int count) {
+        sp.edit().putString("cloud_describe_used_day", day).putInt("cloud_describe_used_count", count).apply();
+    }
+
     /** When we last asked GitHub for a newer release (epoch ms), and the newest tag it told us about. */
     public long getUpdateCheckedAt() { return sp.getLong("update_checked_at", 0); }
     public void setUpdateCheckedAt(long ms) { sp.edit().putLong("update_checked_at", ms).apply(); }

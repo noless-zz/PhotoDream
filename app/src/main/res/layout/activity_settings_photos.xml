@@ -141,6 +141,27 @@
             android:alpha="0.7"
             android:text="@string/describe_hint" />
 
+        <!-- optional cloud sentences with the user's own API key (off by default) -->
+        <com.google.android.material.materialswitch.MaterialSwitch
+            android:id="@+id/sw_cloud_describe"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:minHeight="48dp"
+            android:text="@string/cloud_switch" />
+
+        <TextView
+            android:id="@+id/txt_cloud_status"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:alpha="0.7" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_cloud_setup"
+            style="@style/Widget.Material3.Button.TextButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/cloud_setup" />
+
         <com.google.android.material.materialswitch.MaterialSwitch
             android:id="@+id/sw_strip"
             android:layout_width="match_parent"

@@ -33,6 +33,16 @@ import com.noam.photodream.describe.DescriptionJob;
 import com.noam.photodream.describe.DescriptionStore;
 import com.noam.photodream.describe.DescriptionWorker;
 import com.noam.photodream.describe.GenAiDescriber;
+import com.noam.photodream.describe.cloud.CloudDescriber;
+import com.noam.photodream.describe.cloud.CloudDescriptionProvider;
+import com.noam.photodream.describe.cloud.CloudDescriptionProviders;
+import com.noam.photodream.describe.cloud.DailyCap;
+import com.google.android.material.materialswitch.MaterialSwitch;
+import androidx.appcompat.app.AlertDialog;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.EditText;
+import android.widget.Spinner;
 import com.noam.photodream.source.LocalFolderSource;
 import com.noam.photodream.source.PhotoSource;
 
@@ -115,6 +125,113 @@ public class PhotosSettingsActivity extends SettingsScreen {
         findViewById(R.id.btn_prepare_descriptions).setOnClickListener(v -> {
             if (preparing) describeCancel.set(true); else prepareDescriptions();
         });
+        setupCloudDescribe();
+    }
+
+    // ---------------------------------------------------------------- optional cloud descriptions (issue #23)
+
+    private MaterialSwitch swCloud;
+
+    private void setupCloudDescribe() {
+        swCloud = findViewById(R.id.sw_cloud_describe);
+        swCloud.setChecked(prefs.isCloudDescribe());
+        swCloud.setOnCheckedChangeListener((button, on) -> {
+            if (!button.isPressed()) return;               // ignore changes we make from code
+            if (!on) {
+                prefs.setCloudDescribe(false);
+            } else {
+                swCloud.setChecked(false);                 // only turns on after the privacy text was accepted
+                showCloudSetup();
+            }
+            refreshCloudStatus();
+        });
+        findViewById(R.id.btn_cloud_setup).setOnClickListener(v -> showCloudSetup());
+        refreshCloudStatus();
+    }
+
+    private void refreshCloudStatus() {
+        TextView status = findViewById(R.id.txt_cloud_status);
+        if (!prefs.isCloudDescribe()) {
+            status.setText(R.string.cloud_status_off);
+            return;
+        }
+        CloudDescriptionProvider p = CloudDescriptionProviders.byId(prefs.getCloudProvider());
+        status.setText(getString(R.string.cloud_status_on, p.displayName(), prefs.getCloudDailyLimit()));
+    }
+
+    /** Privacy text + service, key, model and daily cap. "Save and turn on" is the user's consent. */
+    private void showCloudSetup() {
+        View view = getLayoutInflater().inflate(R.layout.dialog_cloud_describe, null);
+        List<CloudDescriptionProvider> providers = CloudDescriptionProviders.all();
+        Spinner spinner = view.findViewById(R.id.spin_cloud_provider);
+        List<String> names = new ArrayList<>();
+        int selected = 0;
+        for (int i = 0; i < providers.size(); i++) {
+            names.add(providers.get(i).displayName());
+            if (providers.get(i).id().equals(prefs.getCloudProvider())) selected = i;
+        }
+        spinner.setAdapter(new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, names));
+        spinner.setSelection(selected);
+
+        TextView privacy = view.findViewById(R.id.txt_cloud_privacy);
+        TextView keyStatus = view.findViewById(R.id.txt_cloud_key_status);
+        EditText key = view.findViewById(R.id.edit_cloud_key);
+        EditText model = view.findViewById(R.id.edit_cloud_model);
+        EditText limit = view.findViewById(R.id.edit_cloud_limit);
+        limit.setText(String.valueOf(prefs.getCloudDailyLimit()));
+
+        Runnable showProvider = () -> {
+            CloudDescriptionProvider p = providers.get(spinner.getSelectedItemPosition());
+            privacy.setText(getString(R.string.cloud_privacy, p.displayName(), CloudDescriber.MAX_SIDE));
+            keyStatus.setText(CloudDescriber.hasKey(this, p.id())
+                    ? getString(R.string.cloud_key_saved) : getString(R.string.cloud_key_missing, p.keyHelpUrl()));
+            model.setHint(getString(R.string.cloud_model_default, p.defaultModel()));
+            model.setText(prefs.getCloudModel(p.id()));
+            key.setText("");
+        };
+        spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override public void onItemSelected(AdapterView<?> parent, View v, int position, long id) { showProvider.run(); }
+            @Override public void onNothingSelected(AdapterView<?> parent) { }
+        });
+        showProvider.run();
+
+        view.findViewById(R.id.btn_cloud_remove_key).setOnClickListener(v -> {
+            CloudDescriptionProvider p = providers.get(spinner.getSelectedItemPosition());
+            CloudDescriber.removeKey(this, p.id());
+            if (p.id().equals(prefs.getCloudProvider())) {
+                prefs.setCloudDescribe(false);
+                swCloud.setChecked(false);
+                refreshCloudStatus();
+            }
+            showProvider.run();
+        });
+
+        new AlertDialog.Builder(this)
+                .setTitle(R.string.cloud_setup_title)
+                .setView(view)
+                .setNegativeButton(android.R.string.cancel, null)
+                .setPositiveButton(R.string.cloud_save, (d, w) -> {
+                    CloudDescriptionProvider p = providers.get(spinner.getSelectedItemPosition());
+                    String typed = key.getText().toString().trim();
+                    if (!typed.isEmpty()) CloudDescriber.saveKey(this, p.id(), typed);
+                    if (!CloudDescriber.hasKey(this, p.id())) {
+                        Toast.makeText(this, R.string.cloud_need_key, Toast.LENGTH_LONG).show();
+                        return;
+                    }
+                    int n;
+                    try {
+                        n = Integer.parseInt(limit.getText().toString().trim());
+                    } catch (NumberFormatException e) {
+                        n = DailyCap.DEFAULT_LIMIT;
+                    }
+                    prefs.setCloudProvider(p.id());
+                    prefs.setCloudModel(p.id(), model.getText().toString().trim());
+                    prefs.setCloudDailyLimit(DailyCap.clampLimit(n));
+                    prefs.setCloudDescribe(true);
+                    swCloud.setChecked(true);
+                    refreshCloudStatus();
+                })
+                .show();
     }
 
     /** "12 of 200 photos described · labels only" – counted off the main thread. */

@@ -19,19 +19,25 @@ import javax.crypto.spec.GCMParameterSpec;
  * The AES key lives in the Android Keystore and never leaves the phone,
  * so a copied prefs file (e.g. from a backup) cannot be read.
  */
-final class SecureStore {
+public final class SecureStore {
 
     private static final String KEYSTORE = "AndroidKeyStore";
-    private static final String ALIAS = "photodream_onedrive";
-    private static final String FILE = "onedrive_secure";
 
     private final SharedPreferences sp;
+    private final String alias;
 
+    /** The OneDrive token store. */
     SecureStore(Context context) {
-        sp = context.getApplicationContext().getSharedPreferences(FILE, Context.MODE_PRIVATE);
+        this(context, "onedrive_secure", "photodream_onedrive");
     }
 
-    void put(String key, String value) {
+    /** A separate store (own prefs file and Keystore key), e.g. for the AI service keys. */
+    public SecureStore(Context context, String file, String alias) {
+        sp = context.getApplicationContext().getSharedPreferences(file, Context.MODE_PRIVATE);
+        this.alias = alias;
+    }
+
+    public void put(String key, String value) {
         if (value == null) {
             sp.edit().remove(key).apply();
             return;
@@ -49,7 +55,7 @@ final class SecureStore {
     }
 
     /** @return the value, or null if missing or unreadable (e.g. key was reset). */
-    String get(String key) {
+    public String get(String key) {
         String packed = sp.getString(key, null);
         if (packed == null) return null;
         try {
@@ -64,18 +70,18 @@ final class SecureStore {
         }
     }
 
-    void clear() {
+    public void clear() {
         sp.edit().clear().apply();
     }
 
-    private static SecretKey key() throws Exception {
+    private SecretKey key() throws Exception {
         KeyStore ks = KeyStore.getInstance(KEYSTORE);
         ks.load(null);
-        if (ks.containsAlias(ALIAS)) {
-            return ((KeyStore.SecretKeyEntry) ks.getEntry(ALIAS, null)).getSecretKey();
+        if (ks.containsAlias(alias)) {
+            return ((KeyStore.SecretKeyEntry) ks.getEntry(alias, null)).getSecretKey();
         }
         KeyGenerator gen = KeyGenerator.getInstance(KeyProperties.KEY_ALGORITHM_AES, KEYSTORE);
-        gen.init(new KeyGenParameterSpec.Builder(ALIAS,
+        gen.init(new KeyGenParameterSpec.Builder(alias,
                 KeyProperties.PURPOSE_ENCRYPT | KeyProperties.PURPOSE_DECRYPT)
                 .setBlockModes(KeyProperties.BLOCK_MODE_GCM)
                 .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_NONE)
