@@ -27,7 +27,10 @@ public class DescriptionWorker extends Worker {
     /** Ask for a labeling run (does nothing if one is already waiting). */
     public static void schedule(Context context, ExistingWorkPolicy policy) {
         OneTimeWorkRequest request = new OneTimeWorkRequest.Builder(DescriptionWorker.class)
-                .setConstraints(new Constraints.Builder().setRequiresCharging(true).build())
+                .setConstraints(new Constraints.Builder()
+                        .setRequiresCharging(true)
+                        .setRequiresBatteryNotLow(true)     // never start heavy work on a nearly empty battery
+                        .build())
                 .build();
         WorkManager.getInstance(context).enqueueUniqueWork(UNIQUE_NAME, policy, request);
     }

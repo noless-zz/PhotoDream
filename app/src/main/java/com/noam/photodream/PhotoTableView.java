@@ -225,7 +225,21 @@ public class PhotoTableView extends FrameLayout implements PhotoDisplay {
     public void setMaxCards(int n) { maxCards = clamp(n, 3, 20); }
     public void setCardSizePercent(int p) { cardSizePercent = clamp(p, 30, 80); }
     public void setMaxRotation(int deg) { maxRotation = clamp(deg, 0, 30); }
-    public void setDrift(boolean on) { drift = on; }
+    /**
+     * Slow floating costs battery: every drifting card redraws the screen ~60 times a second.
+     * Turning it off also stops the animators that already run (cards just stay where they are).
+     */
+    public void setDrift(boolean on) {
+        if (drift == on) return;
+        drift = on;
+        for (Card c : cards) {
+            if (!on) {
+                if (c.drift != null) { c.drift.cancel(); c.drift = null; }
+            } else if (c.drift == null && focused == null) {
+                startDrift(c);
+            }
+        }
+    }
     /** Where favorites and hidden photos are kept; without it the focus buttons are not shown. */
     public void setMarks(PhotoMarksStore store) { marks = store; }
 
