@@ -105,7 +105,7 @@ public class FindDescribedChallenge implements AlarmChallenge {
         table.addOnLayoutChangeListener((v, left, top, right, bottom, ol, ot, or, ob) -> {
             if (!built && right - left > 0 && bottom - top > 0) {
                 built = true;
-                startRound();
+                handler.post(this::startRound);      // not while the layout pass is still running
             }
         });
         l.onProgress(0, rounds);
@@ -144,7 +144,7 @@ public class FindDescribedChallenge implements AlarmChallenge {
             decoder.execute(() -> {
                 Bitmap bmp = BitmapLoader.load(context, photo.uri, longSide);
                 handler.post(() -> {
-                    if (bmp != null && running) card.setPhoto(bmp);
+                    if (bmp != null) card.setPhoto(bmp);
                 });
             });
         }

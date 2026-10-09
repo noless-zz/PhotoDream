@@ -60,7 +60,8 @@ public class RunawayChallenge implements AlarmChallenge {
         table.addOnLayoutChangeListener((v, left, top, right, bottom, ol, ot, or, ob) -> {
             if (!built && right - left > 0 && bottom - top > 0) {
                 built = true;
-                build(right - left, bottom - top);
+                final int w = right - left, h = bottom - top;
+                handler.post(() -> build(w, h));      // not while the layout pass is still running
             }
         });
         l.onProgress(0, rules.catchesNeeded());
@@ -92,7 +93,7 @@ public class RunawayChallenge implements AlarmChallenge {
         decoder.execute(() -> {
             Bitmap bmp = BitmapLoader.load(context, photo.uri, Math.max(w, h));
             handler.post(() -> {
-                if (bmp != null && running) card.setPhoto(bmp);
+                if (bmp != null) card.setPhoto(bmp);
             });
         });
         return card;
