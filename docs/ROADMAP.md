@@ -54,6 +54,8 @@ An alarm that rings over the lock screen; you stop it by solving a challenge wit
 | [#30](https://github.com/noless-zz/PhotoDream/issues/30) | ✅ "Shared with me" folders (class albums) | M | – |
 | [#31](https://github.com/noless-zz/PhotoDream/issues/31) | ✅ Tell users when a new version is on GitHub | S | – |
 | [#32](https://github.com/noless-zz/PhotoDream/issues/32) | ✅ Home-screen photo widget | M | – |
+| [#45](https://github.com/noless-zz/PhotoDream/issues/45) | Motion patterns 1: engine + sunflower, galaxy, tornado, waves | M | – |
+| [#46](https://github.com/noless-zz/PhotoDream/issues/46) | Motion patterns 2: fibonacci, snake, warp, orbits, flock, surprise | M | #45 |
 
 ## Later / only if going public
 Live wallpaper version of the photo table · Google Play readiness (privacy policy page, user-initiated transfer

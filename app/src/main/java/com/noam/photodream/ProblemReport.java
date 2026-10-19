@@ -58,7 +58,7 @@ public final class ProblemReport {
         sb.append("  table: cards=").append(prefs.getTableMaxCards())
                 .append(", size=").append(prefs.getTableCardSize()).append('%')
                 .append(", tilt=").append(prefs.getTableRotation())
-                .append(", drift=").append(prefs.isTableDrift())
+                .append(", motion=").append(prefs.getTableMotion())
                 .append(", entry=").append(prefs.getTableEntry()).append("\n\n");
 
         sb.append("Sources\n");

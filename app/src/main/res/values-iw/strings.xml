@@ -60,7 +60,13 @@
     <string name="entry_random">שילוב אקראי</string>
     <string name="card_size_label">גודל תמונה: %1$d%%</string>
     <string name="rotation_label">הטיה מרבית: %1$d°</string>
-    <string name="drift">תנועה איטית מרחפת</string>
+    <string name="motion_label">תנועה</string>
+    <string name="motion_none">ללא – התמונות נחות במקום</string>
+    <string name="drift">ריחוף איטי</string>
+    <string name="motion_sunflower">חמנייה – ספירלת זווית הזהב</string>
+    <string name="motion_galaxy">גלקסיה – זרועות ספירלה מסתובבות</string>
+    <string name="motion_tornado">טורנדו – התמונות מסתחררות למעלה</string>
+    <string name="motion_waves">גלים – התמונות שטות על הים</string>
     <string name="table_gestures">גרירת תמונה מזיזה אותה · הטלה מהירה זורקת אותה · הקשה כפולה על תמונה מגדילה אותה, והקשה כפולה נוספת מחזירה · הקשה כפולה על שולחן ריק (או לחיצה ארוכה, או ״חזרה״) ליציאה</string>
 
     <!-- ענן -->

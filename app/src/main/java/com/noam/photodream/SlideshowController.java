@@ -72,7 +72,7 @@ public class SlideshowController {
             table.setMaxCards(prefs.getTableMaxCards());
             table.setCardSizePercent(prefs.getTableCardSize());
             table.setMaxRotation(prefs.getTableRotation());
-            table.setDrift(prefs.isTableDrift());
+            table.setMotion(prefs.getTableMotion());
             table.setMarks(PhotoMarksStore.get(context));
             table.setFrameColors(frameColors(prefs));
             display = table;

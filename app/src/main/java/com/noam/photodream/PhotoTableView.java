@@ -3,6 +3,7 @@ package com.noam.photodream;
 import android.animation.Animator;
 import android.animation.ObjectAnimator;
 import android.animation.PropertyValuesHolder;
+import android.animation.TimeAnimator;
 import android.animation.ValueAnimator;
 import android.content.Context;
 import android.graphics.Bitmap;
@@ -30,6 +31,12 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import com.noam.photodream.motion.MotionFrame;
+import com.noam.photodream.motion.MotionKind;
+import com.noam.photodream.motion.MotionPattern;
+import com.noam.photodream.motion.Pose;
+import com.noam.photodream.motion.Smoothing;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -44,6 +51,12 @@ import java.util.Random;
  * Touch: drag a photo to move it, flick it to throw it off the table,
  * long-press anywhere to exit.
  *
+ * Movement: either each card floats slowly on its own ("drift"), or a {@link MotionPattern}
+ * (sunflower, galaxy, ...) choreographs all of them. For a pattern, one {@link TimeAnimator}
+ * ticks every frame, asks the pattern where each card should be, and eases the card toward
+ * that spot - so cards glide whenever their target jumps (a new photo arrives, a dragged
+ * photo is let go, focus mode ends).
+ *
  * Each card is a plain ImageView. Its position on the table is stored in
  * translationX/Y (its layout position is always the top-left corner), so all
  * movement is done with cheap view properties and ViewPropertyAnimator.
@@ -57,12 +70,17 @@ public class PhotoTableView extends FrameLayout implements PhotoDisplay {
     private static final long FOCUS_MS = 350;
     private static final float FOCUS_MARGIN = 0.04f;  // free border around a focused photo
     private static final float SCRIM_ALPHA = 0.8f;
+    private static final double FOLLOW_TAU = 0.5;     // seconds for a card to cover ~63% of the way to its pose
+    private static final float DEPTH_DP = 4f;         // pattern depth +-1 -> +-4dp of translationZ
 
     /** One photo on the table. */
     private static final class Card {
         final ImageView view;
         final Photo photo;
         Animator drift;
+        long id;                            // stays with the card for its life (patterns may use it)
+        float tilt;                         // its own random tilt; a pattern's rotation is added to it
+        boolean following;                  // the motion pattern is moving this card
         Bitmap small;                       // the card-sized bitmap, restored after focus mode
         float homeX, homeY, homeRot, homeScaleX, homeScaleY;   // where it lay before it was focused
 
@@ -73,6 +91,7 @@ public class PhotoTableView extends FrameLayout implements PhotoDisplay {
 
         void cancelAnimations() {
             view.animate().cancel();
+            following = false;
             if (drift != null) {
                 drift.cancel();
                 drift = null;
@@ -130,7 +149,8 @@ public class PhotoTableView extends FrameLayout implements PhotoDisplay {
     private int maxCards = 8;
     private int cardSizePercent = 50;
     private int maxRotation = 12;
-    private boolean drift = true;
+    private MotionKind motion = MotionKind.DRIFT;
+    private MotionPattern pattern;                      // null for NONE and DRIFT
     private Map<String, Integer> frameColors = new HashMap<>();   // source id -> frame color
     private PhotoMarksStore marks;
     private PhotoQueue.Weights weights;
@@ -165,6 +185,13 @@ public class PhotoTableView extends FrameLayout implements PhotoDisplay {
     private VelocityTracker velocity;
 
     private final Runnable advance = this::addNextCard;
+
+    // motion pattern
+    private TimeAnimator ticker;
+    private final MotionFrame frame = new MotionFrame();
+    private final Pose pose = new Pose();              // reused every frame
+    private double motionTime;                         // seconds the pattern has played (paused in focus mode)
+    private long nextCardId;
 
     public PhotoTableView(Context context) { this(context, null); }
 
@@ -225,7 +252,10 @@ public class PhotoTableView extends FrameLayout implements PhotoDisplay {
     public void setMaxCards(int n) { maxCards = clamp(n, 3, 20); }
     public void setCardSizePercent(int p) { cardSizePercent = clamp(p, 30, 80); }
     public void setMaxRotation(int deg) { maxRotation = clamp(deg, 0, 30); }
-    public void setDrift(boolean on) { drift = on; }
+    public void setMotion(MotionKind m) {
+        motion = m;
+        pattern = m.newPattern();
+    }
     /** Where favorites and hidden photos are kept; without it the focus buttons are not shown. */
     public void setMarks(PhotoMarksStore store) { marks = store; }
 
@@ -259,12 +289,14 @@ public class PhotoTableView extends FrameLayout implements PhotoDisplay {
             return;
         }
         messageView.setVisibility(GONE);
+        startTicker();
         addNextCard();
     }
 
     @Override
     public void stop() {
         running = false;
+        stopTicker();
         cardLoader.cancel();
         focusLoader.cancel();
         handler.removeCallbacksAndMessages(null);
@@ -338,9 +370,19 @@ public class PhotoTableView extends FrameLayout implements PhotoDisplay {
         float cy = randomBetween(h * 0.4f, tableH - h * 0.4f);
         float x = cx - w / 2f;
         float y = cy - h / 2f;
-        float rot = maxRotation == 0 ? 0 : randomBetween(-maxRotation, maxRotation);
+        float tilt = maxRotation == 0 ? 0 : randomBetween(-maxRotation, maxRotation);
+        float rot = tilt;
 
         Card card = new Card(iv, photo);
+        card.id = nextCardId++;
+        card.tilt = tilt;
+        if (pattern != null) {
+            // land straight on the newest place of the pattern instead of a random spot
+            pattern.pose(frame.set(tableW, tableH, maxCards, motionTime), 0, card.id, pose);
+            x = pose.x - w / 2f;
+            y = pose.y - h / 2f;
+            rot = tilt + pose.rotation;
+        }
         card.small = bmp;
         if (listener != null) listener.onPhotoShown(photo);
         cards.add(card);
@@ -375,7 +417,7 @@ public class PhotoTableView extends FrameLayout implements PhotoDisplay {
                 v.setRotation(rot + 10f);
                 v.animate().scaleX(1f).scaleY(1f).alpha(1f).rotation(rot)
                         .setDuration(800).setInterpolator(new DecelerateInterpolator())
-                        .withEndAction(() -> startDrift(card));
+                        .withEndAction(() -> startFloating(card));
                 break;
 
             case FLY_IN: {
@@ -392,7 +434,7 @@ public class PhotoTableView extends FrameLayout implements PhotoDisplay {
                 v.setRotation(rot + (random.nextBoolean() ? 90f : -90f));
                 v.animate().translationX(x).translationY(y).rotation(rot)
                         .setDuration(900).setInterpolator(new DecelerateInterpolator(1.5f))
-                        .withEndAction(() -> startDrift(card));
+                        .withEndAction(() -> startFloating(card));
                 break;
             }
 
@@ -401,14 +443,14 @@ public class PhotoTableView extends FrameLayout implements PhotoDisplay {
                 v.setScaleY(0f);
                 v.animate().scaleX(1f).scaleY(1f)
                         .setDuration(700).setInterpolator(new OvershootInterpolator(1.4f))
-                        .withEndAction(() -> startDrift(card));
+                        .withEndAction(() -> startFloating(card));
                 break;
 
             case FADE:
             default:
                 v.setAlpha(0f);
                 v.animate().alpha(1f).setDuration(900)
-                        .withEndAction(() -> startDrift(card));
+                        .withEndAction(() -> startFloating(card));
                 break;
         }
     }
@@ -456,8 +498,13 @@ public class PhotoTableView extends FrameLayout implements PhotoDisplay {
 
     // ---------------------------------------------------------------- floating
 
-    private void startDrift(Card card) {
-        if (!drift || !running || !cards.contains(card) || card == dragged) return;
+    private void startFloating(Card card) {
+        if (!running || !cards.contains(card) || card == dragged) return;
+        if (pattern != null) {
+            card.following = true;          // the ticker moves it from now on
+            return;
+        }
+        if (motion != MotionKind.DRIFT) return;
         View v = card.view;
         float range = tableWidth() * (0.02f + random.nextFloat() * 0.02f);
         float dx = random.nextBoolean() ? range : -range;
@@ -473,6 +520,47 @@ public class PhotoTableView extends FrameLayout implements PhotoDisplay {
         a.setInterpolator(new AccelerateDecelerateInterpolator());
         a.start();
         card.drift = a;
+    }
+
+    // ---------------------------------------------------------------- motion pattern
+
+    private void startTicker() {
+        if (pattern == null || ticker != null) return;
+        ticker = new TimeAnimator();
+        ticker.setTimeListener((a, totalMs, deltaMs) -> onFrame(deltaMs / 1000.0));
+        ticker.start();
+    }
+
+    private void stopTicker() {
+        if (ticker == null) return;
+        ticker.cancel();
+        ticker = null;
+    }
+
+    /** Every frame: move each following card a step closer to where the pattern wants it. */
+    private void onFrame(double dt) {
+        if (focused != null || pattern == null) return;   // focus mode: the table holds still
+        dt = Math.min(dt, 0.1);                           // after a hiccup, catch up gently
+        motionTime += dt;
+        frame.set(tableWidth(), tableHeight(), maxCards, motionTime);
+        float k = Smoothing.factor(dt, FOLLOW_TAU);
+        int n = cards.size();
+        for (int i = 0; i < n; i++) {
+            Card c = cards.get(i);
+            if (!c.following) continue;
+            pattern.pose(frame, n - 1 - i, c.id, pose);    // rank 0 = newest = last in the list
+            View v = c.view;
+            float halfW = v.getLayoutParams().width / 2f, halfH = v.getLayoutParams().height / 2f;
+            v.setTranslationX(Smoothing.step(v.getTranslationX(), pose.x - halfW, k));
+            v.setTranslationY(Smoothing.step(v.getTranslationY(), pose.y - halfH, k));
+            v.setRotation(Smoothing.step(v.getRotation(), c.tilt + pose.rotation, k));
+            float scale = Smoothing.step(v.getScaleX(), pose.scale, k);
+            v.setScaleX(scale);
+            v.setScaleY(scale);
+            v.setAlpha(Smoothing.step(v.getAlpha(), pose.alpha, k));
+            // cards with a higher Z are drawn on top, so "behind the tornado" really is behind
+            v.setTranslationZ(Smoothing.step(v.getTranslationZ(), pose.depth * DEPTH_DP * density, k));
+        }
     }
 
     // ---------------------------------------------------------------- touch
@@ -526,7 +614,7 @@ public class PhotoTableView extends FrameLayout implements PhotoDisplay {
                     if (Math.hypot(vx, vy) > FLICK_SPEED) {
                         flickAway(card, vx, vy);
                     } else {
-                        startDrift(card);
+                        startFloating(card);
                     }
                 }
                 return true;
@@ -535,7 +623,7 @@ public class PhotoTableView extends FrameLayout implements PhotoDisplay {
                 doubleTapHandled = false;
                 Card card = dragged;
                 endDrag();
-                if (card != null) startDrift(card);
+                if (card != null) startFloating(card);
                 return true;
         }
         return true;
@@ -566,11 +654,16 @@ public class PhotoTableView extends FrameLayout implements PhotoDisplay {
         focused = card;
         handler.removeCallbacks(advance);
         for (Card c : cards) {
+            boolean wasFollowing = c.following;
             c.cancelAnimations();
-            // a card caught half-way through its entry animation settles where it is
-            c.view.setAlpha(1f);
-            c.view.setScaleX(1f);
-            c.view.setScaleY(1f);
+            c.view.setTranslationZ(0f);
+            if (!wasFollowing) {
+                // a card caught half-way through its entry animation settles where it is
+                // (a pattern's smaller / dimmer cards keep their look)
+                c.view.setAlpha(1f);
+                c.view.setScaleX(1f);
+                c.view.setScaleY(1f);
+            }
         }
         endDrag();
 
@@ -623,7 +716,7 @@ public class PhotoTableView extends FrameLayout implements PhotoDisplay {
                 .withEndAction(() -> {
                     v.setTranslationZ(0f);
                     if (card.small != null) card.view.setImageBitmap(card.small);   // drop the big bitmap
-                    startDrift(card);
+                    startFloating(card);
                 }).start();
         endFocusUi(card);
     }
@@ -640,7 +733,7 @@ public class PhotoTableView extends FrameLayout implements PhotoDisplay {
                 }
             }).start();
         }
-        for (Card c : cards) if (c != except) startDrift(c);   // the others float again too
+        for (Card c : cards) if (c != except) startFloating(c);   // the others float again too
         if (running) handler.postDelayed(advance, intervalMs);
     }
 

@@ -8,6 +8,7 @@ import android.widget.SeekBar;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.timepicker.MaterialTimePicker;
 import com.google.android.material.timepicker.TimeFormat;
+import com.noam.photodream.motion.MotionKind;
 
 /** Settings › Display: mode, slideshow, photo table, clock, dim. */
 public class DisplaySettingsActivity extends SettingsScreen {
@@ -34,7 +35,7 @@ public class DisplaySettingsActivity extends SettingsScreen {
                 30, 80, prefs.getTableCardSize(), prefs::setTableCardSize);
         setupSeek(R.id.seek_rotation, R.id.txt_rotation, R.string.rotation_label,
                 0, 30, prefs.getTableRotation(), prefs::setTableRotation);
-        setupSwitch(R.id.sw_drift, prefs.isTableDrift(), prefs::setTableDrift);
+        setupMotion();
         setupSwitch(R.id.sw_shuffle, prefs.isShuffle(), prefs::setShuffle);
         setupSwitch(R.id.sw_crop, prefs.isCrop(), prefs::setCrop);
         setupSwitch(R.id.sw_clock, prefs.isShowClock(), prefs::setShowClock);
@@ -145,6 +146,35 @@ public class DisplaySettingsActivity extends SettingsScreen {
         boolean table = prefs.getDisplayMode() == Prefs.DisplayMode.TABLE;
         findViewById(R.id.group_single_only).setVisibility(table ? View.GONE : View.VISIBLE);
         findViewById(R.id.group_table_only).setVisibility(table ? View.VISIBLE : View.GONE);
+    }
+
+    /** One radio button per movement; built in code so a new pattern only needs a label here. */
+    private void setupMotion() {
+        RadioGroup group = findViewById(R.id.group_motion);
+        MotionKind current = prefs.getTableMotion();
+        int minHeight = Math.round(48 * getResources().getDisplayMetrics().density);
+        for (MotionKind kind : MotionKind.values()) {
+            android.widget.RadioButton b = new android.widget.RadioButton(this);
+            b.setId(View.generateViewId());
+            b.setMinHeight(minHeight);
+            b.setText(motionLabel(kind));
+            b.setTag(kind);
+            group.addView(b);
+            if (kind == current) group.check(b.getId());
+        }
+        group.setOnCheckedChangeListener((g, checkedId) ->
+                prefs.setTableMotion((MotionKind) g.findViewById(checkedId).getTag()));
+    }
+
+    private static int motionLabel(MotionKind kind) {
+        switch (kind) {
+            case NONE: return R.string.motion_none;
+            case SUNFLOWER: return R.string.motion_sunflower;
+            case GALAXY: return R.string.motion_galaxy;
+            case TORNADO: return R.string.motion_tornado;
+            case WAVES: return R.string.motion_waves;
+            default: return R.string.drift;
+        }
     }
 
     private void setupEntry() {
