@@ -46,8 +46,8 @@ public class MotionPatternsTest {
                             assertTrue(name + " x " + p.x, p.x >= 0.05f * s[0] && p.x <= 0.95f * s[0]);
                             assertTrue(name + " y " + p.y, p.y >= 0.05f * s[1] && p.y <= 0.95f * s[1]);
                             assertTrue(name + " rotation", Math.abs(p.rotation) <= 20f);
-                            assertTrue(name + " scale", p.scale >= 0.5f && p.scale <= 1.2f);
-                            assertTrue(name + " alpha", p.alpha >= 0.5f && p.alpha <= 1f);
+                            assertTrue(name + " scale", p.scale >= 0.25f && p.scale <= 1.3f);
+                            assertTrue(name + " alpha", p.alpha >= 0f && p.alpha <= 1f);
                             assertTrue(name + " depth", p.depth >= -1f && p.depth <= 1f);
                         }
                     }
@@ -153,6 +153,97 @@ public class MotionPatternsTest {
         w.pose(f, 0, 0, a);
         w.pose(f, 1, 1, b);
         assertTrue(a.y < H / 2f && b.y > H / 2f);
+    }
+
+    @Test
+    public void fibonacciPlacesAreAQuarterTurnAndPhiApart() {
+        assertEquals(1.618034, FibonacciMotion.PHI, 1e-6);
+        MotionFrame f = new MotionFrame().set(1000, 1000, 8, 0);   // square table, no turn yet
+        Pose outer = new Pose(), inner = new Pose();
+        FibonacciMotion fib = new FibonacciMotion();
+        fib.pose(f, 6, 6, outer);
+        fib.pose(f, 5, 5, inner);
+        double r1 = Math.hypot(outer.x - 500, outer.y - 500), r2 = Math.hypot(inner.x - 500, inner.y - 500);
+        assertEquals(FibonacciMotion.PHI, r1 / r2, 1e-3);
+        double turn = Math.atan2(inner.y - 500, inner.x - 500) - Math.atan2(outer.y - 500, outer.x - 500);
+        assertEquals(-Math.PI / 2, Math.IEEEremainder(turn, 2 * Math.PI), 1e-3);
+        assertTrue(outer.scale > inner.scale);
+    }
+
+    @Test
+    public void snakeBodyIsWhereTheHeadWasEarlier() {
+        SnakeMotion s = new SnakeMotion();
+        Pose body = new Pose(), headBefore = new Pose();
+        s.pose(new MotionFrame().set(W, H, 8, 100), 3, 3, body);
+        s.pose(new MotionFrame().set(W, H, 8, 100 - 3 * SnakeMotion.LAG_SECONDS), 0, 0, headBefore);
+        assertEquals(headBefore.x, body.x, 0.01f);
+        assertEquals(headBefore.y, body.y, 0.01f);
+    }
+
+    @Test
+    public void warpCardsGrowAsTheyComeCloserAndFadeBeforeLooping() {
+        WarpMotion w = new WarpMotion();
+        MotionFrame f = new MotionFrame();
+        Pose p = new Pose();
+        // the time at which card 5 is at the very start of a trip
+        double start = (1 - WarpMotion.frac(5 * FibonacciMotion.PHI)) * WarpMotion.TRIP_SECONDS;
+        float lastScale = 0f;
+        for (double t = 0.5; t < WarpMotion.TRIP_SECONDS - 0.5; t += 0.5) {
+            w.pose(f.set(W, H, 8, start + t), 0, 5, p);
+            assertTrue(p.scale > lastScale);
+            lastScale = p.scale;
+        }
+        w.pose(f.set(W, H, 8, start + WarpMotion.TRIP_SECONDS - 0.05), 0, 5, p);
+        assertTrue("almost gone just before it loops", p.alpha < 0.1f);
+    }
+
+    @Test
+    public void orbitsRepeat() {
+        OrbitsMotion o = new OrbitsMotion();
+        Pose a = new Pose(), b = new Pose();
+        // every ratio is a whole number, so after one base period every path has closed
+        o.pose(new MotionFrame().set(W, H, 8, 7), 2, 2, a);
+        o.pose(new MotionFrame().set(W, H, 8, 7 + OrbitsMotion.BASE_SECONDS), 2, 2, b);
+        assertEquals(a.x, b.x, 0.5f);
+        assertEquals(a.y, b.y, 0.5f);
+    }
+
+    @Test
+    public void flockKeepsItsDistanceAndForgetsPhotosThatLeft() {
+        FlockMotion flock = new FlockMotion();
+        MotionFrame f = new MotionFrame();
+        Pose[] p = new Pose[8];
+        for (int i = 0; i < p.length; i++) p[i] = new Pose();
+        for (double t = 0; t <= 120; t += 1.0 / 30) {
+            f.set(1000, 1000, 8, t);
+            for (int i = 0; i < 8; i++) flock.pose(f, i, i, p[i]);
+        }
+        assertEquals(8, flock.size());
+        double closest = Double.MAX_VALUE;
+        for (int i = 0; i < 8; i++) {
+            for (int j = i + 1; j < 8; j++) closest = Math.min(closest, Math.hypot(p[i].x - p[j].x, p[i].y - p[j].y));
+        }
+        assertTrue("fish keep some personal space: " + closest, closest > 40);
+
+        // photos 0..5 leave the table: two frames later only 6 and 7 are left
+        for (int frameNo = 1; frameNo <= 2; frameNo++) {
+            f.set(1000, 1000, 8, 120 + frameNo / 30.0);
+            flock.pose(f, 0, 6, p[6]);
+            flock.pose(f, 1, 7, p[7]);
+        }
+        assertEquals(2, flock.size());
+    }
+
+    @Test
+    public void surprisePlaysEveryOtherPatternInTurn() {
+        SurpriseMotion s = new SurpriseMotion();
+        assertEquals(MotionKind.values().length - 3, s.patternCount());   // minus NONE, DRIFT and itself
+        java.util.Set<Class<?>> seen = new java.util.HashSet<>();
+        for (int i = 0; i < s.patternCount(); i++) {
+            seen.add(s.current(i * SurpriseMotion.SWITCH_SECONDS + 1).getClass());
+        }
+        assertEquals(s.patternCount(), seen.size());
+        assertEquals(s.current(1), s.current(SurpriseMotion.SWITCH_SECONDS - 1));
     }
 
     @Test

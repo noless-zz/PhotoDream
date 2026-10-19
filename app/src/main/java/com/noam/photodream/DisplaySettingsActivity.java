@@ -173,6 +173,12 @@ public class DisplaySettingsActivity extends SettingsScreen {
             case GALAXY: return R.string.motion_galaxy;
             case TORNADO: return R.string.motion_tornado;
             case WAVES: return R.string.motion_waves;
+            case FIBONACCI: return R.string.motion_fibonacci;
+            case SNAKE: return R.string.motion_snake;
+            case WARP: return R.string.motion_warp;
+            case ORBITS: return R.string.motion_orbits;
+            case FLOCK: return R.string.motion_flock;
+            case SURPRISE: return R.string.motion_surprise;
             default: return R.string.drift;
         }
     }
