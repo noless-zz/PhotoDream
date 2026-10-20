@@ -59,7 +59,19 @@
     <string name="entry_random">Random mix</string>
     <string name="card_size_label">Photo size: %1$d%%</string>
     <string name="rotation_label">Max tilt: %1$d°</string>
-    <string name="drift">Slow floating movement</string>
+    <string name="motion_label">Movement</string>
+    <string name="motion_none">None – photos lie still</string>
+    <string name="drift">Slow floating</string>
+    <string name="motion_sunflower">Sunflower – golden-angle spiral</string>
+    <string name="motion_galaxy">Galaxy – turning spiral arms</string>
+    <string name="motion_tornado">Tornado – photos swirl upward</string>
+    <string name="motion_waves">Waves – photos bob on the sea</string>
+    <string name="motion_fibonacci">Fibonacci – zoom along the golden spiral</string>
+    <string name="motion_snake">Snake – photos follow the leader</string>
+    <string name="motion_warp">Warp – fly toward you through space</string>
+    <string name="motion_orbits">Orbits – loops and figure eights</string>
+    <string name="motion_flock">Flock – swim like a school of fish</string>
+    <string name="motion_surprise">Surprise me – a new pattern every few minutes</string>
     <string name="table_gestures">Drag a photo to move it · flick it to throw it away · double-tap a photo to enlarge it, double-tap again to go back · double-tap the empty table (or long-press, or Back) to exit</string>
 
     <!-- cloud sources (shared) -->

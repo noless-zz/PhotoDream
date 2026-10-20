@@ -38,7 +38,6 @@ public class SlideshowController {
     private int normalIntervalSeconds;
     private boolean nightEnabled;
     private Prefs.NightStyle nightStyle = Prefs.NightStyle.DIM_WARM;
-    private boolean driftPref;                      // the user's "slow floating movement" switch
     private boolean night;                        // true while the night look is applied
     private final Runnable checkNight = this::applyNight;
     private boolean started;
@@ -73,9 +72,9 @@ public class SlideshowController {
             table.setMaxCards(prefs.getTableMaxCards());
             table.setCardSizePercent(prefs.getTableCardSize());
             table.setMaxRotation(prefs.getTableRotation());
-            driftPref = prefs.isTableDrift();
+            table.setMotion(prefs.getTableMotion());
             night = false;                    // applyNight() below turns it on again if needed
-            table.setDrift(driftAllowed());
+            table.setMovementEnabled(movementAllowed());
             table.setMarks(PhotoMarksStore.get(context));
             table.setFrameColors(frameColors(prefs));
             display = table;
@@ -123,10 +122,10 @@ public class SlideshowController {
      * Floating cards keep the GPU busy all the time, so they pause when the user turned them off,
      * at night (the screen is dim and nobody watches) and while Battery Saver is on.
      */
-    private boolean driftAllowed() {
+    private boolean movementAllowed() {
         android.os.PowerManager pm = context.getSystemService(android.os.PowerManager.class);
         boolean saver = pm != null && pm.isPowerSaveMode();
-        return driftPref && !night && !saver;
+        return !night && !saver;
     }
 
     // ---------------------------------------------------------------- dates: caption and "On this day"
@@ -193,7 +192,7 @@ public class SlideshowController {
 
         if (shouldBeNight != night) {
             night = shouldBeNight;
-            table.setDrift(driftAllowed());
+            table.setMovementEnabled(movementAllowed());
             boolean clockOnly = nightStyle == Prefs.NightStyle.CLOCK_ONLY;
             if (night) {
                 nightOverlay.setBackgroundColor(clockOnly ? 0xFF000000 : DIM_WARM_OVERLAY);

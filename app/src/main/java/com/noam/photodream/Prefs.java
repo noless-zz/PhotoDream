@@ -4,6 +4,8 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.net.Uri;
 
+import com.noam.photodream.motion.MotionKind;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 
@@ -27,7 +29,8 @@ public class Prefs {
     private static final String KEY_TABLE_MAX_CARDS = "table_max_cards";
     private static final String KEY_TABLE_CARD_SIZE = "table_card_size";
     private static final String KEY_TABLE_ROTATION = "table_rotation";
-    private static final String KEY_TABLE_DRIFT = "table_drift";
+    private static final String KEY_TABLE_DRIFT = "table_drift";        // before "Movement": only read to migrate
+    private static final String KEY_TABLE_MOTION = "table_motion";
 
     private final SharedPreferences sp;
 
@@ -232,6 +235,13 @@ public class Prefs {
     public int getTableRotation() { return sp.getInt(KEY_TABLE_ROTATION, 12); }
     public void setTableRotation(int i) { sp.edit().putInt(KEY_TABLE_ROTATION, i).apply(); }
 
-    public boolean isTableDrift() { return sp.getBoolean(KEY_TABLE_DRIFT, true); }
-    public void setTableDrift(boolean b) { sp.edit().putBoolean(KEY_TABLE_DRIFT, b).apply(); }
+    /** How photos move on the table. Users from before this setting keep their old drift on/off choice. */
+    public MotionKind getTableMotion() {
+        MotionKind old = sp.getBoolean(KEY_TABLE_DRIFT, true)
+                ? MotionKind.DRIFT : MotionKind.NONE;
+        return MotionKind.parse(sp.getString(KEY_TABLE_MOTION, null), old);
+    }
+    public void setTableMotion(MotionKind m) {
+        sp.edit().putString(KEY_TABLE_MOTION, m.name()).apply();
+    }
 }
