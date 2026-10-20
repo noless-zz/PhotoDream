@@ -54,7 +54,8 @@ public class MemoryChallenge implements AlarmChallenge {
         table.addOnLayoutChangeListener((v, left, top, right, bottom, ol, ot, or, ob) -> {
             if (!built && right - left > 0 && bottom - top > 0) {
                 built = true;
-                buildCards(right - left, bottom - top);
+                final int w = right - left, h = bottom - top;
+                handler.post(() -> buildCards(w, h));      // not while the layout pass is still running
             }
         });
         l.onProgress(0, game.pairs());
@@ -91,7 +92,7 @@ public class MemoryChallenge implements AlarmChallenge {
             decoder.execute(() -> {
                 Bitmap bmp = BitmapLoader.load(context, photo.uri, longSide);
                 handler.post(() -> {
-                    if (bmp != null && running) card.setPhoto(bmp);
+                    if (bmp != null) card.setPhoto(bmp);
                 });
             });
         }

@@ -151,6 +151,7 @@ public class PhotoTableView extends FrameLayout implements PhotoDisplay {
     private int maxRotation = 12;
     private MotionKind motion = MotionKind.DRIFT;
     private MotionPattern pattern;                      // null for NONE and DRIFT
+    private boolean movementEnabled = true;
     private Map<String, Integer> frameColors = new HashMap<>();   // source id -> frame color
     private PhotoMarksStore marks;
     private PhotoQueue.Weights weights;
@@ -255,6 +256,26 @@ public class PhotoTableView extends FrameLayout implements PhotoDisplay {
     public void setMotion(MotionKind m) {
         motion = m;
         pattern = m.newPattern();
+    }
+
+    /**
+     * Movement uses the GPU continuously, so pause it when the screen is dim or Battery Saver is on.
+     */
+    public void setMovementEnabled(boolean enabled) {
+        if (movementEnabled == enabled) return;
+        movementEnabled = enabled;
+        if (!enabled) {
+            stopTicker();
+        } else {
+            startTicker();
+        }
+        for (Card c : cards) {
+            if (!enabled) {
+                if (c.drift != null) { c.drift.cancel(); c.drift = null; }
+            } else if (pattern == null && c.drift == null && focused == null) {
+                startFloating(c);
+            }
+        }
     }
     /** Where favorites and hidden photos are kept; without it the focus buttons are not shown. */
     public void setMarks(PhotoMarksStore store) { marks = store; }
@@ -504,6 +525,7 @@ public class PhotoTableView extends FrameLayout implements PhotoDisplay {
             card.following = true;          // the ticker moves it from now on
             return;
         }
+        if (!movementEnabled) return;
         if (motion != MotionKind.DRIFT) return;
         View v = card.view;
         float range = tableWidth() * (0.02f + random.nextFloat() * 0.02f);
@@ -525,7 +547,7 @@ public class PhotoTableView extends FrameLayout implements PhotoDisplay {
     // ---------------------------------------------------------------- motion pattern
 
     private void startTicker() {
-        if (pattern == null || ticker != null) return;
+        if (!movementEnabled || pattern == null || ticker != null) return;
         ticker = new TimeAnimator();
         ticker.setTimeListener((a, totalMs, deltaMs) -> onFrame(deltaMs / 1000.0));
         ticker.start();

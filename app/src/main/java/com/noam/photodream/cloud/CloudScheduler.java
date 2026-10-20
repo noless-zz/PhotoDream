@@ -18,6 +18,11 @@ import java.util.concurrent.TimeUnit;
 public final class CloudScheduler {
 
     private static final long EVERY_HOURS = 6;
+    /**
+     * Each run may happen anywhere in the last FLEX_HOURS of the 6-hour period, so Android can
+     * batch it with other apps' jobs (and wait for charging) instead of waking the radio alone.
+     */
+    private static final long FLEX_HOURS = 3;
 
     private CloudScheduler() { }
 
@@ -54,7 +59,7 @@ public final class CloudScheduler {
                 .setRequiresStorageNotLow(true)
                 .build();
         PeriodicWorkRequest req = new PeriodicWorkRequest.Builder(
-                CloudSyncWorker.class, EVERY_HOURS, TimeUnit.HOURS)
+                CloudSyncWorker.class, EVERY_HOURS, TimeUnit.HOURS, FLEX_HOURS, TimeUnit.HOURS)
                 .setConstraints(c)
                 .setInputData(input(p, false))
                 .setInitialDelay(delayHours, TimeUnit.HOURS)
